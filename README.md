@@ -1,0 +1,121 @@
+# Nosy
+
+**The AI that's been watching your Slack workspace — and has opinions about it.**
+
+> Built for the Slack Agent Builder Challenge 2026
+
+---
+
+## The Problem
+
+You're subscribed to threads you care about, but Slack gives you the same notification for "ok sounds good" as it does for "we need to talk about the deploy." Everything looks the same. Nothing feels urgent until it is.
+
+Meanwhile, commitments get made and forgotten. Decisions happen in threads you're watching but not participating in. And when a thread dies — no one knows how it ended.
+
+## What Nosy Does
+
+Nosy is not an assistant. You don't ask it things. It watches — and it tells you what's worth knowing.
+
+### Watch a thread (or an entire channel)
+Run `/nosy` inside any thread and Nosy subscribes you. Run it in a channel with no thread selected and Nosy watches **every thread in that channel**. It reads every message through Claude, and only contacts you when something genuinely interesting happens.
+
+### DMs that sound like a friend, not a notification
+When Nosy reaches out, it reads like a text from the most plugged-in person in your office:
+
+> "jake just said 'almost done' again. third time this week. just wanted you to know 👀"
+
+> "it went quiet in there right after that comment dropped. you felt that too right?"
+
+> "they're doing the same thing they did in the Q3 planning thread — going in circles but louder"
+
+No alert banners. No "THREAD ACTIVITY DETECTED." Just a message.
+
+### Receipts Engine
+Nosy listens for commitments. "I'll have it done by Thursday." "Shipping EOD." "Will fix this tomorrow." It stores them. If time passes and nothing happens — Nosy follows up:
+
+> "Sarah said she'd have the migration done by EOD Thursday. that was 2 days ago. thread's been quiet. 👀"
+
+When someone actually ships it, Nosy notices and closes the receipt automatically.
+
+### Blindspot Alerts
+You've subscribed to a thread but haven't said anything in it. A decision is being made without your input. Nosy tells you:
+
+> "you haven't been in that thread but they're making a call about the API architecture without you. might want to weigh in 👀"
+
+### Thread Obituaries
+When a thread goes silent after being active, Nosy writes its eulogy:
+
+> "RIP this thread. started as a 'quick question', became 23 messages of circular debate, ended when Mark said he'd 'think about it'. he has not thought about it."
+
+### Memory That Compounds
+Every thread Nosy reads, it stores an observation. Over time, it builds a picture of your workspace — who says what, what patterns repeat, what never gets resolved.
+
+When Nosy DMs you, it draws on that memory. When you DM Nosy back:
+
+> You: "has this team always been this chaotic?"
+> Nosy: "honestly yes. third sprint in a row this exact thing has happened. same people, same argument, same non-decision."
+
+Nosy isn't just watching the current thread. It's been watching the whole workspace.
+
+---
+
+## How It Works
+
+```
+/nosy in a thread  →  watch this specific thread
+/nosy in a channel →  watch every thread in this channel
+
+New message in a watched thread:
+  → Claude reads the real thread content (not regex signals)
+  → Decides: is this notable? Is there a commitment? Should silent subscribers be warned?
+  → DMs active subscribers with drama, DMs silent subscribers with blindspot alerts
+  → Stores an observation to memory
+  → Checks for receipts
+
+Hourly receipt check:
+  → Any commitments unfulfilled past their deadline?
+  → DM subscribers with the receipts
+
+Hourly obituary check:
+  → Any threads silent for 4+ hours after being active?
+  → Claude writes the eulogy, DMs subscribers
+
+User replies to Nosy's DM:
+  → Nosy pulls its full memory + conversation history
+  → Responds like a friend who's been paying attention
+```
+
+---
+
+## Tech Stack
+
+- **Runtime:** Node.js + TypeScript
+- **Slack:** Bolt for JavaScript (Events API, Slash Commands)
+- **AI:** Anthropic Claude (`claude-opus-4-5`) — reads thread content, writes DMs, makes judgment calls
+- **Database:** Supabase (PostgreSQL) — subscriptions, memory, receipts, conversation history
+- **Scheduling:** node-cron (receipts + obituary checks)
+- **Deploy:** Railway
+
+---
+
+## What Makes This Different
+
+Every other agent in this challenge is a tool — you talk to it, it helps you. Nosy acts first. It's the first Slack agent that functions as a **witness**: it has been paying attention, it has memory, and it has opinions.
+
+- No regex or hardcoded keywords — Claude reads real content and uses judgment
+- Memory compounds — the longer Nosy watches, the sharper its takes
+- The DMs don't feel like notifications — they feel like a text from someone who's plugged in
+- You can talk back — Nosy has a full conversation history and memory to draw on
+- It tracks what people said they'd do — and notices when they don't
+
+---
+
+## Demo
+
+[Demo video link]
+
+---
+
+## Built by
+
+[Your name / team]
