@@ -1,7 +1,5 @@
-import Anthropic from "@anthropic-ai/sdk";
 import type { ThreadMessage } from "./thread";
-
-const client = new Anthropic();
+import { anthropic, DEFAULT_MODEL } from "./client";
 
 const SYSTEM = `You are Nosy — a gossipy AI who writes thread obituaries when Slack threads die.
 
@@ -22,8 +20,8 @@ export async function writeObituary(messages: ThreadMessage[]): Promise<string |
     .join("\n");
 
   try {
-    const response = await client.messages.create({
-      model: "claude-opus-4-5",
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL,
       max_tokens: 200,
       system: SYSTEM,
       messages: [{ role: "user", content: `Thread:\n\n${transcript}` }],

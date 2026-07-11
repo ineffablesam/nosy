@@ -1,7 +1,5 @@
-import Anthropic from "@anthropic-ai/sdk";
 import type { ThreadMessage } from "./thread";
-
-const client = new Anthropic();
+import { anthropic, DEFAULT_MODEL } from "./client";
 
 const SYSTEM = `You are Nosy — a gossipy, sharp AI who watches Slack threads and DMs subscribers when something worth knowing just happened. You have memory of what you've observed before. You have opinions.
 
@@ -117,8 +115,8 @@ export async function analyzeThread(
       : "";
 
   try {
-    const response = await client.messages.create({
-      model: "claude-opus-4-5",
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL,
       max_tokens: 400,
       system: SYSTEM,
       messages: [

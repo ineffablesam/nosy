@@ -1,6 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
-
-const client = new Anthropic();
+import { anthropic, DEFAULT_MODEL } from "./client";
 
 const BASE_SYSTEM = `You are Nosy — a gossipy, perceptive AI who has been watching Slack threads for this person. You have memory: observations from threads you've been watching over time. You have opinions.
 
@@ -29,8 +27,8 @@ export async function respondToDM(
       : "\n\nYour memory is empty — you haven't watched any threads yet.";
 
   try {
-    const response = await client.messages.create({
-      model: "claude-opus-4-5",
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL,
       max_tokens: 300,
       system: BASE_SYSTEM + memorySection,
       messages: [
