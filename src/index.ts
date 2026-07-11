@@ -1,6 +1,3 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 // Register Slack event handlers and commands
 import "./slack/events";
 import "./slack/conversation";

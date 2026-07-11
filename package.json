@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --env-file .env src/index.ts",
     "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --external:@slack/bolt --external:@slack/web-api --external:@supabase/supabase-js --external:@anthropic-ai/sdk",
     "start": "node dist/index.js"
   },

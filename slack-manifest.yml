@@ -1,6 +1,6 @@
 display_information:
   name: Nosy
-  description: The AI that's been watching your workspace and has opinions about it
+  description: The agent that never minds its business 
   background_color: "#1a1a2e"
 
 features:
@@ -22,6 +22,7 @@ oauth_config:
       - im:read
       - im:write
       - chat:write
+      - chat:write.customize
       - commands
       - users:read
 
@@ -34,5 +35,5 @@ settings:
   interactivity:
     is_enabled: false
   org_deploy_enabled: false
-  socket_mode_enabled: false
+  socket_mode_enabled: true
   token_rotation_enabled: false
