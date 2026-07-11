@@ -17,9 +17,11 @@ Meanwhile, commitments get made and forgotten. Decisions happen in threads you'r
 Nosy is not an assistant. You don't ask it things. It watches — and it tells you what's worth knowing.
 
 ### Watch a thread (or an entire channel)
+
 Run `/nosy` inside any thread and Nosy subscribes you. Run it in a channel with no thread selected and Nosy watches **every thread in that channel**. It reads every message through Claude, and only contacts you when something genuinely interesting happens.
 
 ### DMs that sound like a friend, not a notification
+
 When Nosy reaches out, it reads like a text from the most plugged-in person in your office:
 
 > "jake just said 'almost done' again. third time this week. just wanted you to know 👀"
@@ -31,6 +33,7 @@ When Nosy reaches out, it reads like a text from the most plugged-in person in y
 No alert banners. No "THREAD ACTIVITY DETECTED." Just a message.
 
 ### Receipts Engine
+
 Nosy listens for commitments. "I'll have it done by Thursday." "Shipping EOD." "Will fix this tomorrow." It stores them. If time passes and nothing happens — Nosy follows up:
 
 > "Sarah said she'd have the migration done by EOD Thursday. that was 2 days ago. thread's been quiet. 👀"
@@ -38,16 +41,23 @@ Nosy listens for commitments. "I'll have it done by Thursday." "Shipping EOD." "
 When someone actually ships it, Nosy notices and closes the receipt automatically.
 
 ### Blindspot Alerts
+
 You've subscribed to a thread but haven't said anything in it. A decision is being made without your input. Nosy tells you:
 
 > "you haven't been in that thread but they're making a call about the API architecture without you. might want to weigh in 👀"
 
+
+
 ### Thread Obituaries
+
 When a thread goes silent after being active, Nosy writes its eulogy:
 
 > "RIP this thread. started as a 'quick question', became 23 messages of circular debate, ended when Mark said he'd 'think about it'. he has not thought about it."
 
+
+
 ### Memory That Compounds
+
 Every thread Nosy reads, it stores an observation. Over time, it builds a picture of your workspace — who says what, what patterns repeat, what never gets resolved.
 
 When Nosy DMs you, it draws on that memory. When you DM Nosy back:
@@ -58,6 +68,8 @@ When Nosy DMs you, it draws on that memory. When you DM Nosy back:
 Nosy isn't just watching the current thread. It's been watching the whole workspace.
 
 ---
+
+
 
 ## How It Works
 
@@ -87,6 +99,8 @@ User replies to Nosy's DM:
 
 ---
 
+
+
 ## Tech Stack
 
 - **Runtime:** Node.js + TypeScript
@@ -98,23 +112,28 @@ User replies to Nosy's DM:
 
 ---
 
+
+
 ## What Makes This Different
 
 Every other agent in this challenge is a tool — you talk to it, it helps you. Nosy acts first. It's the first Slack agent that functions as a **witness**: it has been paying attention, it has memory, and it has opinions.
 
-- No regex or hardcoded keywords — Claude reads real content and uses judgment
 - Memory compounds — the longer Nosy watches, the sharper its takes
 - The DMs don't feel like notifications — they feel like a text from someone who's plugged in
-- You can talk back — Nosy has a full conversation history and memory to draw on
+- You can talk back — Nosy has a full conversation.
 - It tracks what people said they'd do — and notices when they don't
 
 ---
+
+
 
 ## Demo
 
 [Demo video link]
 
 ---
+
+
 
 ## Built by
 
