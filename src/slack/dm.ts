@@ -75,3 +75,35 @@ export async function sendMemeDM(
     return false;
   }
 }
+
+/**
+ * Uploads an mp4 to Nosy's DM with the user, with a caption as the initial comment.
+ * Returns true on success, false on failure (caller should fall back to text).
+ */
+export async function sendVideoDM(
+  userId: string,
+  video: Buffer,
+  filename: string,
+  title: string,
+  caption: string
+): Promise<boolean> {
+  try {
+    const dm = await app.client.conversations.open({ users: userId });
+    const channelId = dm.channel?.id;
+    if (!channelId) {
+      console.error("[dm] sendVideoDM: could not open DM channel");
+      return false;
+    }
+    await app.client.files.uploadV2({
+      channel_id: channelId,
+      file: video,
+      filename,
+      title,
+      initial_comment: caption,
+    });
+    return true;
+  } catch (err) {
+    console.error(`[dm] sendVideoDM failed for ${userId}:`, err);
+    return false;
+  }
+}
