@@ -38,6 +38,19 @@ describe("MovieGate", () => {
     expect(gate.decide("U1", "hey what's up")).toBe("ignore");
   });
 
+  it("does not cave on a generic word like 'just' from a primed user", () => {
+    gate.decide("U1", "movie"); // refuse + prime
+    expect(gate.decide("U1", "just checking in on the deploy")).toBe("ignore");
+  });
+
+  it("ignores a beg once the prime is stale beyond the beg window", () => {
+    let t = 1_000;
+    const g = new MovieGate({ primedWindowMs: 5_000, begWindowMs: 20_000, now: () => t });
+    g.decide("U1", "movie"); // primed at t=1000
+    t = 100_000;             // way past both windows
+    expect(g.decide("U1", "please")).toBe("ignore");
+  });
+
   it("clears rendering so the user can request again", () => {
     gate.decide("U1", "movie");
     gate.decide("U1", "please");

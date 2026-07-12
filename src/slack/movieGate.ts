@@ -1,10 +1,15 @@
 export type GateDecision = "ignore" | "refuse" | "cave" | "deflect";
 
 const MOVIE_INTENT = /\b(movie|trailer|teaser|nosy\s*productions?|nosy\s*pictures?)\b/i;
-const BEG = /\b(please|pls|plz|come\s*on|c'?mon|just|pretty\s*please|teaser|one\s*more)\b/i;
+// Deliberately narrow: generic words like "just" are excluded so an unrelated
+// message ("just checking in") from a primed user can't accidentally cave/refuse.
+const BEG = /\b(please|pls|plz|come\s*on|c'?mon|pretty\s*please|teaser|one\s*more\s*time)\b/i;
 
 export interface MovieGateOptions {
+  /** Window after a refusal during which a beg/movie caves into a teaser. */
   primedWindowMs?: number;
+  /** Longer window after which a beg no longer re-triggers a refusal (staleness bound). */
+  begWindowMs?: number;
   now?: () => number;
 }
 
@@ -12,10 +17,12 @@ export class MovieGate {
   private primed = new Map<string, number>();
   private rendering = new Set<string>();
   private readonly windowMs: number;
+  private readonly begWindowMs: number;
   private readonly now: () => number;
 
   constructor(opts: MovieGateOptions = {}) {
     this.windowMs = opts.primedWindowMs ?? 10 * 60 * 1000;
+    this.begWindowMs = opts.begWindowMs ?? 30 * 60 * 1000;
     this.now = opts.now ?? (() => Date.now());
   }
 
@@ -23,8 +30,9 @@ export class MovieGate {
     const isMovie = MOVIE_INTENT.test(text);
     const isBeg = BEG.test(text);
     const primedAt = this.primed.get(userId);
-    const hasPrime = primedAt !== undefined;
-    const isPrimed = hasPrime && this.now() - primedAt! <= this.windowMs;
+    const age = primedAt !== undefined ? this.now() - primedAt : Infinity;
+    const isPrimed = age <= this.windowMs;
+    const canRefuseOnBeg = age <= this.begWindowMs;
 
     if (this.rendering.has(userId)) {
       return isMovie || (isPrimed && isBeg) ? "deflect" : "ignore";
@@ -33,7 +41,7 @@ export class MovieGate {
       this.primed.delete(userId);
       return "cave";
     }
-    if (isMovie || (hasPrime && isBeg)) {
+    if (isMovie || (canRefuseOnBeg && isBeg)) {
       this.primed.set(userId, this.now());
       return "refuse";
     }
