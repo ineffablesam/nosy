@@ -1,7 +1,8 @@
 import type { ThreadMessage } from "./thread";
-import { anthropic, DEFAULT_MODEL } from "./client";
+import { anthropic, openai, DEFAULT_MODEL, GPT_MODEL } from "./client";
+import { withRetry } from "./retry";
 
-const SYSTEM = `You are Nosy — a gossipy, sharp AI who watches Slack threads and DMs subscribers when something worth knowing just happened. You have memory of what you've observed before. You have opinions.
+const SYSTEM = `You are Nosy — a gossipy, sharp AI who watches Slack threads and DMs subscribers when something genuinely worth knowing just happened. You are selective. You DM sparingly — only when something is actually surprising, escalating, or urgent. You have memory of past observations and you USE it to avoid re-alerting on things you've already flagged.
 
 You receive:
 1. A Slack thread (latest message marked [LATEST])
@@ -22,17 +23,39 @@ Return ONLY valid JSON (no markdown fences) matching this exact shape:
 ---
 
 NOTIFY + DM rules:
-notify = true when the latest message is DM-worthy:
-  - Drama, tension, conflict (even passive-aggressive subtext)
-  - Stress, frustration, someone stuck or spiraling
-  - A surprising decision, reversal, or announcement
-  - Someone being evasive or sus about something that matters
-  - Escalation, chaos, something genuinely unexpected
-  - Something requiring the subscriber's attention or action
+notify = true ONLY when the [LATEST] message crosses a HIGH bar:
+  - A NEW conflict or escalation that wasn't already flagged in your memory
+  - A real production risk, bug, or outage that just got more serious
+  - A surprising reversal, decision, or announcement that changes something
+  - Someone making a commitment under pressure that they might not keep
+  - A situation that will cause a problem if the subscriber doesn't see it soon
 
-notify = false for: routine replies, "ok thanks", "noted", boring status updates
+notify = false for:
+  - Drama you've already flagged in memory (same thread, same people, same issue)
+  - Routine conversation, status updates, acknowledgements, emoji reactions
+  - Mild tension that isn't escalating
+  - Anything that can wait — Nosy only interrupts for things that can't
 
-If notify = true, write dm as a casual 1-3 sentence text from a gossipy friend. Reference what actually happened. Use memory context if there's a relevant pattern. Natural emoji ok. No bot formatting. No "FYI:" openers.
+High bar means: if you're unsure, the answer is false. DM fatigue is real.
+
+Check memory FIRST. If your memory already shows you flagged this thread or these people for the same issue, set notify = false unless there's a clear NEW escalation.
+
+If notify = true, write dm like you're texting a friend who asked "what'd I miss?" — casual, punchy, a little nosy. ONE sentence usually. Two max. Sound like a person, not a report.
+
+BAD (sounds like AI/an incident report):
+- "Marcus just committed to shipping the CSV export timeout fix immediately after Jake called out the 30s timeout as the cause. Worth watching because this is customer-facing and being patched fast under ticket pressure."
+- "Dave found the database slowdown: a 22-minute analytics query is full-scanning the 40M-row events table. This is already customer-visible latency, so someone needs to kill or contain it now."
+
+GOOD (sounds like a real friend texting, typos and all):
+- "marcus said hes shipping the csv fix now but lol we'll see"
+- "dave found the query killing the db. 40M rows. 22 min. nobody claimed it yet 💀"
+- "sarah vs marcus round 47 in the auth pr. hes getting defensive again lmao"
+- "jake promised the webhook refactor by friday. again. 🍿"
+- "marcus pushed to main. again."
+- "ok so the dashboards 8mb now bc priya added ANOTHER charting library"
+- "prod is down. dave n jake on it. 502s everywhere"
+
+tone: type like ur texting a close friend. lowercase, no caps, typos ok, short forms (rn, tbh, idk, lol, fr, ngl). drop punctuation sometimes. one or two emoji max, and not always. no "worth watching because", no incident-report tone, no "this is customer-visible". just tell them the tea like a human. if its funny lean into it. if its serious be blunt.
 If notify = false, dm = null.
 
 ---
@@ -61,11 +84,20 @@ receipt = null if no explicit commitment was made.
 ---
 
 BLINDSPOT rules:
-blindspot_worthy = true when the thread contains a significant decision, question, or call-to-action that someone subscribed-but-silent should probably see.
-blindspot_dm = a 1-2 sentence DM for people who are subscribed but haven't spoken in the thread. Reference what decision/question is being discussed.
-Example: "you haven't been in that thread but they're making a call about the auth migration without you. might want to weigh in 👀"
+blindspot_worthy = true ONLY for the highest-stakes situations where a silent watcher genuinely needs to see this NOW:
+  - Active production incident or outage unfolding in real time
+  - An irreversible architectural or infrastructure decision being made RIGHT NOW with no clear owner
+  - A security or data integrity risk that is not being handled
 
-blindspot_worthy = false and blindspot_dm = null for routine conversation.
+blindspot_worthy = false for:
+  - Code review debates, even heated ones
+  - Bugs that are already being investigated or fixed
+  - Status updates, commitments, or plans (not decisions)
+  - Architecture debates that are still early / exploratory
+  - Anything that can wait an hour
+
+This is a very high bar — most threads should be blindspot_worthy = false.
+blindspot_dm = same messy texting tone as notify dm. "psst prod is down u might wanna look" energy. no "worth weighing in" or "now's the moment to peek in" — that's bot talk. just tell them, like a friend who spotted something they should see. null if blindspot_worthy = false.
 
 ---
 
@@ -114,22 +146,50 @@ export async function analyzeThread(
       ? `\n\nYour recent memory:\n${recentObservations.join("\n")}`
       : "";
 
-  try {
-    const response = await anthropic.messages.create({
-      model: DEFAULT_MODEL,
-      max_tokens: 400,
-      system: SYSTEM,
-      messages: [
-        { role: "user", content: `Thread:\n\n${transcript}${memorySection}` },
-      ],
-    });
+  const userContent = `Thread:\n\n${transcript}${memorySection}`;
 
-    const block = response.content[0];
-    if (block.type !== "text") return { ...EMPTY_RESULT };
-
-    return JSON.parse(block.text.trim()) as AnalysisResult;
-  } catch (err) {
-    console.error("[analyze] failed:", err);
-    return { ...EMPTY_RESULT };
+  // Try Claude up to 2 times first
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const response = await withRetry(() =>
+        anthropic.messages.create({
+          model: DEFAULT_MODEL,
+          max_tokens: 4096,
+          system: SYSTEM,
+          messages: [{ role: "user", content: userContent }],
+        })
+      );
+      const block = response.content[0];
+      if (block.type !== "text") continue;
+      const raw = block.text.trim();
+      if (!raw) { await new Promise((r) => setTimeout(r, 2000)); continue; }
+      const json = raw.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
+      return JSON.parse(json) as AnalysisResult;
+    } catch {
+      await new Promise((r) => setTimeout(r, 2000));
+    }
   }
+
+  // Claude returned empty — fall back to GPT
+  console.log("[analyze] claude empty, falling back to gpt");
+  try {
+    const res = await withRetry(() =>
+      openai.chat.completions.create({
+        model: GPT_MODEL,
+        max_tokens: 2048,
+        messages: [
+          { role: "system", content: SYSTEM },
+          { role: "user", content: userContent },
+        ],
+      })
+    );
+    const raw = (res.choices[0]?.message?.content ?? "").trim();
+    if (!raw) return { ...EMPTY_RESULT };
+    const json = raw.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
+    return JSON.parse(json) as AnalysisResult;
+  } catch (err) {
+    console.error("[analyze] gpt fallback failed:", err);
+  }
+
+  return { ...EMPTY_RESULT };
 }

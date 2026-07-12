@@ -12,8 +12,23 @@
  */
 
 import { WebClient } from "@slack/web-api";
+import { createClient } from "@supabase/supabase-js";
 
 const client = new WebClient(process.env.SLACK_BOT_TOKEN);
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
+);
+
+async function subscribeUserToChannel(channelId: string, userId: string) {
+  const threadKey = `channel:${channelId}`;
+  const { error } = await supabase
+    .from("subscriptions")
+    .upsert({ thread_key: threadKey, user_id: userId }, { onConflict: "thread_key,user_id" });
+  if (error) console.error(`  ✗ Supabase subscribe failed:`, error.message);
+  else console.log(`  ✓ Nosy is now watching #channel for ${userId}`);
+}
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const POST_DELAY_MS = 1200; // ~50 req/min rate limit safe zone
@@ -21,17 +36,19 @@ const POST_DELAY_MS = 1200; // ~50 req/min rate limit safe zone
 // ---------------------------------------------------------------------------
 // Fake users (name + emoji avatar)
 // ---------------------------------------------------------------------------
+// Using real-looking avatar photos — much more convincing than emoji icons.
+// i.pravatar.cc generates consistent faces per seed URL.
 const USERS = {
-  jake:   { username: "Jake Chen",      icon_emoji: ":male-technologist:" },
-  sarah:  { username: "Sarah Okonkwo",  icon_emoji: ":woman-office-worker:" },
-  marcus: { username: "Marcus Reyes",   icon_emoji: ":man-mechanic:" },
-  elena:  { username: "Elena Vasquez",  icon_emoji: ":woman-artist:" },
-  tom:    { username: "Tom Wheeler",    icon_emoji: ":man-beard:" },
-  priya:  { username: "Priya Nair",     icon_emoji: ":woman-student:" },
-  dave:   { username: "Dave Kim",       icon_emoji: ":man-factory-worker:" },
-  maria:  { username: "Maria Santos",   icon_emoji: ":woman-health-worker:" },
-  alex:   { username: "Alex Turner",    icon_emoji: ":man-in-tuxedo:" },
-  chris:  { username: "Chris Morgan",   icon_emoji: ":crown:" },
+  jake:   { username: "Jake Chen",      icon_url: "https://i.pravatar.cc/72?img=11" },
+  sarah:  { username: "Sarah Okonkwo",  icon_url: "https://i.pravatar.cc/72?img=47" },
+  marcus: { username: "Marcus Reyes",   icon_url: "https://i.pravatar.cc/72?img=14" },
+  elena:  { username: "Elena Vasquez",  icon_url: "https://i.pravatar.cc/72?img=44" },
+  tom:    { username: "Tom Wheeler",    icon_url: "https://i.pravatar.cc/72?img=15" },
+  priya:  { username: "Priya Nair",     icon_url: "https://i.pravatar.cc/72?img=49" },
+  dave:   { username: "Dave Kim",       icon_url: "https://i.pravatar.cc/72?img=12" },
+  maria:  { username: "Maria Santos",   icon_url: "https://i.pravatar.cc/72?img=48" },
+  alex:   { username: "Alex Turner",    icon_url: "https://i.pravatar.cc/72?img=13" },
+  chris:  { username: "Chris Morgan",   icon_url: "https://i.pravatar.cc/72?img=53" },
 };
 
 type UserKey = keyof typeof USERS;
@@ -53,35 +70,33 @@ const CHANNELS = [
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+async function inviteAndSubscribe(channelId: string, name: string) {
+  if (!process.env.SLACK_USER_ID || process.env.SLACK_USER_ID === "U0XXXXXXXX") return;
+  try {
+    await client.conversations.invite({ channel: channelId, users: process.env.SLACK_USER_ID });
+    console.log(`  ✓ Invited you to #${name}`);
+  } catch {
+    // already a member — fine
+  }
+  await delay(500);
+  await subscribeUserToChannel(channelId, process.env.SLACK_USER_ID);
+}
+
 async function createChannel(name: string): Promise<string> {
   try {
     const res = await client.conversations.create({ name, is_private: false });
     const channelId = res.channel?.id ?? "";
     console.log(`  ✓ Created #${name} (${channelId})`);
     await delay(POST_DELAY_MS);
-    // Bot joins channel
-    await client.conversations.join({ channel: channelId });
-    await delay(POST_DELAY_MS);
+    await inviteAndSubscribe(channelId, name);
     return channelId;
   } catch (err: unknown) {
-    if (
-      typeof err === "object" &&
-      err !== null &&
-      "data" in err &&
-      typeof (err as { data: { error?: string } }).data === "object" &&
-      (err as { data: { error?: string } }).data.error === "name_taken"
-    ) {
-      // Channel already exists — find it
-      const list = await client.conversations.list({ exclude_archived: true, limit: 200 });
-      const ch = list.channels?.find((c) => c.name === name);
-      if (ch?.id) {
-        console.log(`  ~ #${name} already exists (${ch.id})`);
-        await client.conversations.join({ channel: ch.id });
-        await delay(POST_DELAY_MS);
-        return ch.id;
-      }
+    const slackErr = err as { data?: { error?: string } };
+    if (slackErr.data?.error === "name_taken") {
+      console.error(`  ✗ #${name} already exists — delete it in Slack then re-run`);
+    } else {
+      console.error(`  ✗ Failed to create #${name}:`, err);
     }
-    console.error(`  ✗ Failed to create #${name}:`, err);
     return "";
   }
 }

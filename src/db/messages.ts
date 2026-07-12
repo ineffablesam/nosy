@@ -14,6 +14,11 @@ export async function appendMessage(userId: string, msg: ChatMessage): Promise<v
   if (error) console.error("[messages] append failed:", error);
 }
 
+export async function clearConversationHistory(userId: string): Promise<void> {
+  const { error } = await supabase.from("dm_messages").delete().eq("user_id", userId);
+  if (error) console.error("[messages] clear failed:", error);
+}
+
 export async function getConversationHistory(
   userId: string,
   limit = 10

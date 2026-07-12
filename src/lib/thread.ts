@@ -18,11 +18,12 @@ export async function fetchThreadMessages(
     });
 
     return (result.messages ?? [])
-      .filter(
-        (m): m is typeof m & { user: string; text: string } =>
-          Boolean(m.user && m.text)
-      )
-      .map((m) => ({ userId: m.user, text: m.text }));
+      .filter((m): m is typeof m & { text: string } => Boolean(m.text))
+      .map((m) => ({
+        // Real users have m.user; bot/seeded messages use username or bot_id as fallback
+        userId: m.user ?? (m as Record<string, unknown>).username as string ?? m.bot_id ?? "unknown",
+        text: m.text!,
+      }));
   } catch (err) {
     console.error("[thread] Failed to fetch replies:", err);
     return [];

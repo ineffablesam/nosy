@@ -1,12 +1,17 @@
 import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 
-// Reads ANTHROPIC_API_KEY and ANTHROPIC_BASE_URL from environment automatically.
-// Set ANTHROPIC_BASE_URL=https://api.synterolink.com to use the custom endpoint.
+// Claude via SynteroLink Anthropic-compatible endpoint
 export const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
-  baseURL: process.env.ANTHROPIC_BASE_URL,
+  baseURL: process.env.ANTHROPIC_BASE_URL, // https://api.synterolink.com
 });
 
-// Default model — override per-call if needed
-export const DEFAULT_MODEL =
-  process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
+// GPT via SynteroLink OpenAI-compatible endpoint
+export const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: "https://api.synterolink.com/v1",
+});
+
+export const DEFAULT_MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
+export const GPT_MODEL = process.env.OPENAI_MODEL ?? "gpt-5.4";

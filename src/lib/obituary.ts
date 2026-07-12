@@ -1,5 +1,6 @@
 import type { ThreadMessage } from "./thread";
-import { anthropic, DEFAULT_MODEL } from "./client";
+import { openai, GPT_MODEL } from "./client";
+import { withRetry } from "./retry";
 
 const SYSTEM = `You are Nosy — a gossipy AI who writes thread obituaries when Slack threads die.
 
@@ -20,15 +21,18 @@ export async function writeObituary(messages: ThreadMessage[]): Promise<string |
     .join("\n");
 
   try {
-    const response = await anthropic.messages.create({
-      model: DEFAULT_MODEL,
-      max_tokens: 200,
-      system: SYSTEM,
-      messages: [{ role: "user", content: `Thread:\n\n${transcript}` }],
-    });
+    const res = await withRetry(() =>
+      openai.chat.completions.create({
+        model: GPT_MODEL,
+        max_tokens: 1024,
+        messages: [
+          { role: "system", content: SYSTEM },
+          { role: "user", content: `Thread:\n\n${transcript}` },
+        ],
+      })
+    );
 
-    const block = response.content[0];
-    return block.type === "text" ? block.text.trim() : null;
+    return res.choices[0]?.message?.content?.trim() ?? null;
   } catch (err) {
     console.error("[obituary] failed:", err);
     return null;
