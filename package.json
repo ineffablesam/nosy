@@ -5,10 +5,13 @@
   "scripts": {
     "dev": "tsx watch --env-file .env src/index.ts",
     "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --external:@slack/bolt --external:@slack/web-api --external:@supabase/supabase-js --external:@anthropic-ai/sdk --external:openai --external:playwright",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.52.0",
+    "@google/genai": "^2.11.0",
     "@slack/bolt": "^4.4.0",
     "@slack/web-api": "^7.9.0",
     "@supabase/supabase-js": "^2.47.0",
@@ -22,6 +25,7 @@
     "@types/node-cron": "^3.0.11",
     "esbuild": "^0.24.2",
     "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.10"
   }
 }
