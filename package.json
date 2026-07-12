@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch --env-file .env src/index.ts",
-    "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --external:@slack/bolt --external:@slack/web-api --external:@supabase/supabase-js --external:@anthropic-ai/sdk",
+    "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --external:@slack/bolt --external:@slack/web-api --external:@supabase/supabase-js --external:@anthropic-ai/sdk --external:openai --external:playwright",
     "start": "node dist/index.js"
   },
   "dependencies": {
@@ -14,7 +14,8 @@
     "@supabase/supabase-js": "^2.47.0",
     "dotenv": "^16.4.7",
     "node-cron": "^3.0.3",
-    "openai": "^6.46.0"
+    "openai": "^6.46.0",
+    "playwright": "^1.61.1"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

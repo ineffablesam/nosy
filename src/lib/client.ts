@@ -14,4 +14,7 @@ export const openai = new OpenAI({
 });
 
 export const DEFAULT_MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
+// DM replies use Haiku — fast and cheap, ideal for casual texting.
+// Thread analysis (analyze.ts) keeps the Sonnet DEFAULT_MODEL above.
+export const DM_MODEL = process.env.DM_MODEL ?? "claude-haiku-4-5-20251001";
 export const GPT_MODEL = process.env.OPENAI_MODEL ?? "gpt-5.4";

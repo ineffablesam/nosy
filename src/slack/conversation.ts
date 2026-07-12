@@ -1,7 +1,79 @@
 import { app } from "./app";
 import { getRecentObservations } from "../db/observations";
 import { getConversationHistory, appendMessage, clearConversationHistory } from "../db/messages";
-import { respondToDM } from "../lib/respond";
+import { respondToDM, type DMResponse } from "../lib/respond";
+import { generateMeme } from "../lib/meme";
+import { sendMemeDM } from "./dm";
+
+// Set MEMES_ENABLED=false in .env to disable meme generation entirely.
+const MEMES_ENABLED = process.env.MEMES_ENABLED !== "false";
+
+async function postText(userId: string, text: string): Promise<void> {
+  try {
+    await app.client.chat.postMessage({
+      channel: userId,
+      text,
+      unfurl_links: false,
+    });
+  } catch (err) {
+    console.error("[conversation] postText failed:", err);
+  }
+}
+
+function memeMarker(prompt: string): string {
+  const short = prompt.length > 80 ? prompt.slice(0, 80) + "…" : prompt;
+  return `[sent a meme: ${short}]`;
+}
+
+/**
+ * Handles a turn where Nosy decided to send a meme (optionally with text
+ * before or after it). Falls back gracefully to text if generation fails.
+ */
+async function handleMemeTurn(userId: string, resp: DMResponse): Promise<void> {
+  const prompt = resp.meme!.prompt;
+  const text = resp.reply && resp.reply.trim() ? resp.reply.trim() : null;
+  const placement = resp.meme!.textPlacement;
+
+  // 1. Text before the meme (sets it up).
+  if (placement === "before" && text) {
+    await postText(userId, text);
+  }
+
+  // 2. Generate and deliver the meme.
+  let memeOk = false;
+  try {
+    const meme = await generateMeme(prompt);
+    memeOk = await sendMemeDM(userId, meme.image, meme.filename);
+  } catch (err) {
+    console.error("[conversation] meme generation failed:", err);
+  }
+
+  if (!memeOk) {
+    // Make sure the user still gets something.
+    if (text && placement !== "before") {
+      await postText(userId, text);
+    } else if (!text) {
+      await postText(userId, "couldn't get the meme to load 😭 my bad");
+    }
+    await appendMessage(userId, {
+      role: "assistant",
+      content: text
+        ? `${text} ${memeMarker(prompt)} [failed]`
+        : `${memeMarker(prompt)} [failed]`,
+    });
+    return;
+  }
+
+  // 3. Text after the meme (caption / reaction).
+  if (placement === "after" && text) {
+    await postText(userId, text);
+  }
+
+  // 4. Record the turn in history — the marker tells future-you that a meme
+  //    was just sent so you don't spam back-to-back memes.
+  const memory = text ? `${text} ${memeMarker(prompt)}` : memeMarker(prompt);
+  await appendMessage(userId, { role: "assistant", content: memory });
+}
 
 app.message(async ({ message }) => {
   // Only handle direct messages
@@ -13,6 +85,10 @@ app.message(async ({ message }) => {
 
   const userId = message.user as string;
   const userText = (message.text as string).trim();
+
+  // Slash commands fire both a command event AND a message event in DMs.
+  // Let the command handler own those — ignore them here.
+  if (userText.startsWith("/")) return;
 
   // "clear" resets memory AND deletes all of Nosy's messages from the DM channel
   if (/^(clear|reset|forget|start over)$/i.test(userText)) {
@@ -55,16 +131,18 @@ app.message(async ({ message }) => {
   ]);
 
   // history includes the message we just appended — pass everything except the last item
-  // so Claude doesn't see the user message twice
+  // so the LLM doesn't see the user message twice
   const priorHistory = history.slice(0, -1);
 
-  const reply = await respondToDM(userText, priorHistory, memory);
+  const resp = await respondToDM(userText, priorHistory, memory);
 
-  await appendMessage(userId, { role: "assistant", content: reply });
+  if (resp.meme && MEMES_ENABLED) {
+    await handleMemeTurn(userId, resp);
+    return;
+  }
 
-  await app.client.chat.postMessage({
-    channel: userId,
-    text: reply,
-    unfurl_links: false,
-  });
+  // Plain text reply — either no meme was chosen, or memes are disabled.
+  const text = resp.reply ?? "👀";
+  await appendMessage(userId, { role: "assistant", content: text });
+  await postText(userId, text);
 });
