@@ -1,5 +1,6 @@
 import type { ThreadMessage } from "./thread";
 import { openai, GPT_MODEL } from "./client";
+import { logLLM, timedLLM } from "./llmLog";
 import { withRetry } from "./retry";
 
 const SYSTEM = `You are Nosy — a gossipy AI who writes thread obituaries when Slack threads die.
@@ -20,21 +21,26 @@ export async function writeObituary(messages: ThreadMessage[]): Promise<string |
     .map((m) => `<@${m.userId}>: ${m.text}`)
     .join("\n");
 
+  logLLM("obituary", `thread ${messages.length} msgs`);
   try {
-    const res = await withRetry(() =>
-      openai.chat.completions.create({
-        model: GPT_MODEL,
-        max_tokens: 1024,
-        messages: [
-          { role: "system", content: SYSTEM },
-          { role: "user", content: `Thread:\n\n${transcript}` },
-        ],
-      })
+    const res = await timedLLM("obituary", `gpt/${GPT_MODEL}`, () =>
+      withRetry(() =>
+        openai.chat.completions.create({
+          model: GPT_MODEL,
+          max_tokens: 1024,
+          messages: [
+            { role: "system", content: SYSTEM },
+            { role: "user", content: `Thread:\n\n${transcript}` },
+          ],
+        })
+      )
     );
 
-    return res.choices[0]?.message?.content?.trim() ?? null;
+    const text = res.choices[0]?.message?.content?.trim() ?? null;
+    logLLM("obituary", text ? `written (${text.length} chars)` : "empty response");
+    return text;
   } catch (err) {
-    console.error("[obituary] failed:", err);
+    logLLM("obituary", `failed — ${err instanceof Error ? err.message : String(err)}`);
     return null;
   }
 }

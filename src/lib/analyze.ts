@@ -1,5 +1,6 @@
 import type { ThreadMessage } from "./thread";
 import { anthropic, openai, DEFAULT_MODEL, GPT_MODEL } from "./client";
+import { logLLM, timedLLM } from "./llmLog";
 import { withRetry } from "./retry";
 
 const SYSTEM = `You are Nosy — a gossipy, sharp AI who watches Slack threads and DMs subscribers when something genuinely worth knowing just happened. You are selective. You DM sparingly — only when something is actually surprising, escalating, or urgent. You have memory of past observations and you USE it to avoid re-alerting on things you've already flagged.
@@ -147,49 +148,82 @@ export async function analyzeThread(
       : "";
 
   const userContent = `Thread:\n\n${transcript}${memorySection}`;
+  logLLM(
+    "analyze",
+    `thread ${messages.length} msgs, ${recentObservations.length} memory entries`
+  );
 
   // Try Claude up to 2 times first
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      const response = await withRetry(() =>
-        anthropic.messages.create({
-          model: DEFAULT_MODEL,
-          max_tokens: 4096,
-          system: SYSTEM,
-          messages: [{ role: "user", content: userContent }],
-        })
+      const response = await timedLLM(
+        "analyze",
+        `claude/${DEFAULT_MODEL} attempt ${attempt}`,
+        () =>
+          withRetry(() =>
+            anthropic.messages.create({
+              model: DEFAULT_MODEL,
+              max_tokens: 4096,
+              system: SYSTEM,
+              messages: [{ role: "user", content: userContent }],
+            })
+          )
       );
       const block = response.content[0];
       if (block.type !== "text") continue;
       const raw = block.text.trim();
-      if (!raw) { await new Promise((r) => setTimeout(r, 2000)); continue; }
+      if (!raw) {
+        logLLM("analyze", `claude attempt ${attempt} returned empty text`);
+        await new Promise((r) => setTimeout(r, 2000));
+        continue;
+      }
       const json = raw.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
-      return JSON.parse(json) as AnalysisResult;
-    } catch {
+      const result = JSON.parse(json) as AnalysisResult;
+      logLLM(
+        "analyze",
+        `result notify=${result.notify} observation=${result.observation ? "yes" : "no"} receipt=${result.receipt ? "yes" : "no"} blindspot=${result.blindspot_worthy}`
+      );
+      return result;
+    } catch (err) {
+      logLLM(
+        "analyze",
+        `claude attempt ${attempt} failed — ${err instanceof Error ? err.message : String(err)}`
+      );
       await new Promise((r) => setTimeout(r, 2000));
     }
   }
 
   // Claude returned empty — fall back to GPT
-  console.log("[analyze] claude empty, falling back to gpt");
+  logLLM("analyze", `claude exhausted, falling back to gpt/${GPT_MODEL}`);
   try {
-    const res = await withRetry(() =>
-      openai.chat.completions.create({
-        model: GPT_MODEL,
-        max_tokens: 2048,
-        messages: [
-          { role: "system", content: SYSTEM },
-          { role: "user", content: userContent },
-        ],
-      })
+    const res = await timedLLM("analyze", `gpt/${GPT_MODEL} fallback`, () =>
+      withRetry(() =>
+        openai.chat.completions.create({
+          model: GPT_MODEL,
+          max_tokens: 2048,
+          messages: [
+            { role: "system", content: SYSTEM },
+            { role: "user", content: userContent },
+          ],
+        })
+      )
     );
     const raw = (res.choices[0]?.message?.content ?? "").trim();
-    if (!raw) return { ...EMPTY_RESULT };
+    if (!raw) {
+      logLLM("analyze", "gpt fallback returned empty");
+      return { ...EMPTY_RESULT };
+    }
     const json = raw.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
-    return JSON.parse(json) as AnalysisResult;
+    const result = JSON.parse(json) as AnalysisResult;
+    logLLM(
+      "analyze",
+      `gpt result notify=${result.notify} observation=${result.observation ? "yes" : "no"}`
+    );
+    return result;
   } catch (err) {
-    console.error("[analyze] gpt fallback failed:", err);
+    logLLM("analyze", `gpt fallback failed — ${err instanceof Error ? err.message : String(err)}`);
   }
 
+  logLLM("analyze", "returning empty result");
   return { ...EMPTY_RESULT };
 }

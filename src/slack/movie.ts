@@ -1,6 +1,7 @@
 import { app } from "./app";
 import { MovieGate } from "./movieGate";
 import { generateTeaser } from "../lib/trailer";
+import { logLLM } from "../lib/llmLog";
 import { sendVideoDM } from "./dm";
 import { appendMessage } from "../db/messages";
 
@@ -17,6 +18,7 @@ async function post(userId: string, text: string): Promise<void> {
 
 async function renderAndDeliver(userId: string): Promise<void> {
   try {
+    logLLM("movie", `rendering teaser for ${userId}`);
     const teaser = await generateTeaser();
     const ok = await sendVideoDM(
       userId,

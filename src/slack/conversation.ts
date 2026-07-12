@@ -2,6 +2,7 @@ import { app } from "./app";
 import { getRecentObservations } from "../db/observations";
 import { getConversationHistory, appendMessage, clearConversationHistory } from "../db/messages";
 import { respondToDM, type DMResponse } from "../lib/respond";
+import { logLLM } from "../lib/llmLog";
 import { generateMeme } from "../lib/meme";
 import { sendMemeDM } from "./dm";
 import { startGame }      from "./tictactoe";
@@ -154,6 +155,7 @@ app.message(async ({ message }) => {
   // so the LLM doesn't see the user message twice
   const priorHistory = history.slice(0, -1);
 
+  logLLM("conversation", `dm from ${userId}`);
   const resp = await respondToDM(userText, priorHistory, memory);
 
   if (resp.meme && MEMES_ENABLED) {

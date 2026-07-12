@@ -1,4 +1,5 @@
 import { anthropic, openai, DM_MODEL, GPT_MODEL } from "./client";
+import { logLLM, timedLLM } from "./llmLog";
 import { withRetry } from "./retry";
 import { searchWorkspace, RTS_ENABLED } from "./rts";
 
@@ -132,50 +133,82 @@ export async function respondToDM(
     { role: "user" as const, content: userMessage },
   ];
 
+  const preview =
+    userMessage.length > 60 ? `${userMessage.slice(0, 60)}…` : userMessage;
+  logLLM(
+    "respond",
+    `dm "${preview}" (${conversationHistory.length} prior turns, ${recentObservations.length} memory)`
+  );
+
   // Try Claude first — it runs on a separate stack (Anthropic-compatible
   // /v1/messages) from the OpenAI chat-completions endpoint, so it survives
   // the SynteroLink 502s that take down the GPT path.
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      const response = await withRetry(() =>
-        anthropic.messages.create({
-          model: DM_MODEL,
-          max_tokens: 1024,
-          system,
-          messages,
-        })
+      const response = await timedLLM(
+        "respond",
+        `claude/${DM_MODEL} attempt ${attempt}`,
+        () =>
+          withRetry(() =>
+            anthropic.messages.create({
+              model: DM_MODEL,
+              max_tokens: 1024,
+              system,
+              messages,
+            })
+          )
       );
       const block = response.content[0];
       if (block.type !== "text") continue;
       const raw = block.text.trim();
       if (!raw) {
+        logLLM("respond", `claude attempt ${attempt} returned empty text`);
         await new Promise((r) => setTimeout(r, 2000));
         continue;
       }
-      return parseDMResponse(raw);
+      const parsed = parseDMResponse(raw);
+      logLLM(
+        "respond",
+        `reply meme=${parsed.meme ? "yes" : "no"} text=${parsed.reply ? "yes" : "no"}`
+      );
+      return parsed;
     } catch (err) {
-      console.error(`[respond] claude attempt ${attempt} failed:`, err);
+      logLLM(
+        "respond",
+        `claude attempt ${attempt} failed — ${err instanceof Error ? err.message : String(err)}`
+      );
       await new Promise((r) => setTimeout(r, 2000));
     }
   }
 
   // Claude didn't produce a usable reply — fall back to GPT.
-  console.log("[respond] claude empty/failed, falling back to gpt");
+  logLLM("respond", `claude exhausted, falling back to gpt/${GPT_MODEL}`);
   try {
-    const res = await withRetry(() =>
-      openai.chat.completions.create({
-        model: GPT_MODEL,
-        max_tokens: 1024,
-        messages: [{ role: "system", content: system }, ...messages],
-      })
+    const res = await timedLLM("respond", `gpt/${GPT_MODEL} fallback`, () =>
+      withRetry(() =>
+        openai.chat.completions.create({
+          model: GPT_MODEL,
+          max_tokens: 1024,
+          messages: [{ role: "system", content: system }, ...messages],
+        })
+      )
     );
     const raw = (res.choices[0]?.message?.content ?? "").trim();
-    if (!raw) return { ...GLITCH };
-    return parseDMResponse(raw);
+    if (!raw) {
+      logLLM("respond", "gpt fallback returned empty");
+      return { ...GLITCH };
+    }
+    const parsed = parseDMResponse(raw);
+    logLLM(
+      "respond",
+      `gpt reply meme=${parsed.meme ? "yes" : "no"} text=${parsed.reply ? "yes" : "no"}`
+    );
+    return parsed;
   } catch (err) {
-    console.error("[respond] gpt fallback failed:", err);
+    logLLM("respond", `gpt fallback failed — ${err instanceof Error ? err.message : String(err)}`);
   }
 
+  logLLM("respond", "returning glitch fallback");
   return { ...GLITCH };
 }
 
