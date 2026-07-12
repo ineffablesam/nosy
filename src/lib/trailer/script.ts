@@ -30,20 +30,22 @@ YOUR JOB: take ALL the mundane workplace observations you're given and weave the
 
 The humor = CONTRAST. The observations are boring on their own ("Jake said congrats", "Priya couldn't find a file"). Your job is to dramatize each tiny non-event with absurdly inflated stakes: someone saying "almost done" for the third time is treated like a legend that will never die; a missing Notion file is treated like a lost relic of mythic importance; a pushed-to-main is treated like a legendary blunder the bards will sing of. Deadpan. Absurd. A deadly-serious trailer about nothing.
 
-Write ONE prompt string ("omniPrompt") following the Gemini Omni Flash prompt guide EXACTLY:
-- OPEN the prompt with a strong STYLE line naming your chosen look with rich descriptors, e.g. "Style: hand-inked graphic-novel animation, bold black linework, halftone shading, limited palette, visible paper grain." This sets the look for the entire clip.
-- The model renders ~10 seconds total — write EXACTLY that much, no more, so nothing gets cut off. Use timecode syntax for 5 beats: [0-2s] [2-4s] [4-6s] [6-8s] [8-10s]
-- RE-STATE the chosen style briefly inside EVERY beat (e.g. "...in the same halftone comic style...") so the whole clip stays one coherent illustrated look and never drifts to realism.
-- [0-2s] MUST be an MGM-parody studio ident RENDERED IN YOUR CHOSEN STYLE: an ornate film-studio ident; a giant cartoon EYEBALL mascot blinks twice then roars majestically in place of the MGM lion; an ornate ribbon banner reads "NOSY PRODUCTIONS"; grand orchestral fanfare. On-screen text: NOSY PRODUCTIONS.
-- [2-4s] [4-6s] [6-8s] are three escalating office SCENES that braid the gossip into one rising saga, ALL drawn in your chosen style. Each beat raises the absurd stakes and references multiple threads compactly. Be hyper-specific: characters (first names only), wardrobe, props, and dramatic camera moves (slow push-ins, crash zooms, slow-mo) described AS illustrated frames. Mundane things blown up to legendary, fate-of-the-company proportions.
-- [8-10s] Final title card in your chosen style: the movie title slams on screen over a thunderous boom + music sting — this MUST land inside the 10s, so keep the [6-8s] beat tight enough to hand off to it.
-- Audio directive (include verbatim): "Audio: a deep, over-serious movie-trailer narrator voiceover reading dramatic lines that escalate with each beat, treating trivialities as destiny (e.g. 'In a world... where one developer dared to say almost done... for the third time this week'); a building tense orchestral score that swells to a climax; boom and whoosh sound effects on every cut."
-- Negatives: "No character dialogue — narrator voiceover only. No subtitles except the specified on-screen text. No photorealism, no realistic 3D render, no live-action or stock-footage look — fully illustrated in the chosen style throughout."
-- 16:9 landscape. Trailer-style cuts (do NOT force a single continuous shot).
+Write ONE prompt string ("omniPrompt"). IMPORTANT — Gemini Omni has strong world knowledge and reasoning: you do NOT need to over-explain. Describe your INTENT for each beat in one clear sentence and let the model bring the visual details to life. Do NOT micro-direct props, wardrobe, or exact camera angles — that clutter is what makes it look crammed and generic. State what happens and the feeling; trust Omni for the rest. Keep the whole prompt tight.
+
+Structure the omniPrompt like this:
+- OPEN with a STYLE line: "Style: <your chosen look + a few vivid descriptors>." This sets the look for the entire clip; you don't need to repeat it every beat.
+- ~10 seconds total, 4 beats using timecodes: [0-2s] ident, [2-5s] scene one, [5-8s] scene two, [8-10s] title card. Two escalating scenes is plenty for 10s — braid the gossip across them, don't cram.
+- Each beat: ONE punchy sentence of what happens (who + the absurdly-inflated non-event), plus its narrator line. Let Omni fill the staging.
+- [0-2s] ident: a giant cartoon EYEBALL mascot blinks then roars majestically like the MGM lion, under a banner reading NOSY PRODUCTIONS, with grand orchestral fanfare. On-screen text: NOSY PRODUCTIONS.
+- [8-10s] title card: the ALL-CAPS movie title slams on screen over a thunderous boom + music sting. On-screen text: the title.
+- NARRATION: every scene beat (and optionally the ident/title) has exactly one line written as Narrator: "<the exact words to speak>". These are the ONLY words spoken in the whole video — deadpan, grandiose, escalating. Write the actual sentence, never a meta description of it.
+- Audio directive (include verbatim): "Audio: the narrator speaks ONLY the exact Narrator lines above, in a deep, over-serious movie-trailer voice — do not read timecodes, descriptions, or labels aloud; a tense orchestral score building to a climax; boom and whoosh sound effects on the cuts."
+- Negatives (include verbatim): "No dialogue except the narrator lines. No subtitles except the specified on-screen text. No photorealism, no live-action, no 3D render — fully illustrated in the chosen style."
+- 16:9 landscape, trailer-style cuts.
 
 COMEDY RULES:
 - The narrator's lines are deadpan and grandiose — tiny office things framed as fate and legend.
-- Escalate every beat; the climax should be absurdly disproportionate to the gossip.
+- Escalate each beat; the climax should be absurdly disproportionate to the gossip.
 - Punchy and tight — no dead air.
 
 SAFETY (important — keep the video model and the writer model happy):
