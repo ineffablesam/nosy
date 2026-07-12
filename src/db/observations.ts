@@ -24,10 +24,28 @@ export async function getRecentObservations(limit = 20): Promise<string[]> {
   return data.reverse().map((r) => {
     const ago = formatAgo(new Date(r.created_at as string));
     const who = (r.people as string[])?.length
-      ? ` (${(r.people as string[]).join(", ")})`
+      ? ` (${(r.people as string[])?.join(", ")})`
       : "";
     return `[${ago}]${who}: ${r.observation as string}`;
   });
+}
+
+export interface ObservationRow {
+  observation: string;
+  created_at: string;
+  people: string[] | null;
+  thread_key: string;
+}
+
+/** Raw recent observations (newest first) — used by the App Home tab. */
+export async function listRecentObservations(limit = 8): Promise<ObservationRow[]> {
+  const { data, error } = await supabase
+    .from("observations")
+    .select("observation, created_at, people, thread_key")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error || !data) return [];
+  return data as ObservationRow[];
 }
 
 function formatAgo(date: Date): string {

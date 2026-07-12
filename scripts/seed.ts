@@ -82,6 +82,66 @@ async function inviteAndSubscribe(channelId: string, name: string) {
   await subscribeUserToChannel(channelId, process.env.SLACK_USER_ID);
 }
 
+async function findChannel(name: string): Promise<string> {
+  let cursor: string | undefined;
+  do {
+    const res = await client.conversations.list({
+      types: "public_channel",
+      exclude_archived: false,
+      limit: 200,
+      cursor,
+    });
+    for (const ch of res.channels ?? []) {
+      if (ch.name === name && ch.id) return ch.id;
+    }
+    cursor = res.response_metadata?.next_cursor ?? undefined;
+  } while (cursor);
+  return "";
+}
+
+async function clearChannel(channelId: string, name: string): Promise<void> {
+  console.log(`  🧹 Clearing messages from #${name}...`);
+  let cursor: string | undefined;
+  let deleted = 0;
+  do {
+    const history = await client.conversations.history({
+      channel: channelId,
+      limit: 200,
+      cursor,
+    });
+    for (const msg of history.messages ?? []) {
+      if (!msg.ts) continue;
+      // Delete thread replies first — prevents "This message was deleted" tombstones.
+      if (msg.reply_count && msg.reply_count > 0) {
+        let replyCursor: string | undefined;
+        do {
+          const thread = await client.conversations.replies({
+            channel: channelId,
+            ts: msg.ts,
+            limit: 200,
+            cursor: replyCursor,
+          });
+          // replies() returns parent as index 0 — skip it, delete the rest
+          for (const reply of (thread.messages ?? []).slice(1)) {
+            if (reply.ts) {
+              await client.chat.delete({ channel: channelId, ts: reply.ts }).catch(() => {});
+              deleted++;
+              await delay(300);
+            }
+          }
+          replyCursor = thread.response_metadata?.next_cursor ?? undefined;
+        } while (replyCursor);
+      }
+      // Delete the parent — no replies left so no tombstone.
+      await client.chat.delete({ channel: channelId, ts: msg.ts }).catch(() => {});
+      deleted++;
+      await delay(300);
+    }
+    cursor = history.response_metadata?.next_cursor ?? undefined;
+  } while (cursor);
+  console.log(`  ✓ Cleared ${deleted} messages from #${name}`);
+}
+
 async function createChannel(name: string): Promise<string> {
   try {
     const res = await client.conversations.create({ name, is_private: false });
@@ -93,11 +153,21 @@ async function createChannel(name: string): Promise<string> {
   } catch (err: unknown) {
     const slackErr = err as { data?: { error?: string } };
     if (slackErr.data?.error === "name_taken") {
-      console.error(`  ✗ #${name} already exists — delete it in Slack then re-run`);
+      // Channel already exists (nuke clears messages but keeps channels active).
+      // Find it, wipe any leftover messages, and seed fresh into it.
+      console.log(`  ↩ #${name} already exists — reusing and clearing...`);
+      const channelId = await findChannel(name);
+      if (!channelId) {
+        console.error(`  ✗ #${name} exists but could not be found`);
+        return "";
+      }
+      await clearChannel(channelId, name);
+      await inviteAndSubscribe(channelId, name);
+      return channelId;
     } else {
       console.error(`  ✗ Failed to create #${name}:`, err);
+      return "";
     }
-    return "";
   }
 }
 

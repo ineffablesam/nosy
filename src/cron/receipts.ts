@@ -1,7 +1,8 @@
 import cron from "node-cron";
 import { getStaleReceipts, markReceiptAlerted } from "../db/receipts";
 import { getThreadAndChannelSubscribers } from "../db/subscriptions";
-import { sendDM } from "../slack/dm";
+import { sendBlockDM } from "../slack/dm";
+import { buildReceiptCard, encodeReceiptPayload, threadPermalink } from "../slack/blocks";
 
 const STALE_HOURS = parseInt(process.env.RECEIPT_STALE_HOURS ?? "24");
 
@@ -13,6 +14,8 @@ export function startReceiptsCron(): void {
     for (const receipt of stale) {
       const parts = receipt.thread_key.split(":");
       const channelId = parts[0] ?? receipt.channel_id;
+      const threadTs = parts[1] ?? "";
+      const threadLink = threadTs ? threadPermalink(channelId, receipt.thread_key) : undefined;
 
       const subscribers = await getThreadAndChannelSubscribers(
         channelId,
@@ -26,29 +29,37 @@ export function startReceiptsCron(): void {
 
       const dueText =
         receipt.due_hint && receipt.due_hint !== "unclear"
-          ? `they said "${receipt.due_hint}"`
-          : "no timeline was given";
+          ? receipt.due_hint
+          : null;
 
       const hoursAgo = Math.round(
         (Date.now() - new Date(receipt.created_at).getTime()) / 3600000
       );
 
-      const dm =
-        `<@${receipt.made_by}> said they'd ${receipt.commitment} — ` +
-        `${dueText}. that was ${hoursAgo}h ago. thread's been quiet. 👀`;
+      const payload = encodeReceiptPayload({
+        r: receipt.id,
+        m: receipt.made_by,
+        c: receipt.commitment,
+        t: receipt.thread_key,
+        ch: channelId,
+      });
 
-      const threadTs = parts[1] ?? "";
-      const threadLink = threadTs
-        ? `https://slack.com/archives/${channelId}/p${threadTs.replace(".", "")}`
-        : undefined;
+      const card = buildReceiptCard({
+        madeBy: receipt.made_by,
+        commitment: receipt.commitment,
+        dueHint: dueText,
+        hoursAgo,
+        threadLink: threadLink ?? "",
+        payload,
+      });
 
       for (const userId of subscribers) {
-        await sendDM(userId, dm, threadLink);
+        await sendBlockDM(userId, card.text, card.blocks);
       }
 
       await markReceiptAlerted(receipt.id);
     }
   });
 
-  console.log(`[cron:receipts] started — checking hourly, alerting after ${STALE_HOURS}h`);
+  console.log(`[cron:receipts] started — checking hourly, alerting after ${STALE_HOURS}h with interactive cards`);
 }

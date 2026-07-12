@@ -4,6 +4,11 @@ import { getConversationHistory, appendMessage, clearConversationHistory } from 
 import { respondToDM, type DMResponse } from "../lib/respond";
 import { generateMeme } from "../lib/meme";
 import { sendMemeDM } from "./dm";
+import { startGame }      from "./tictactoe";
+import { startHangman }   from "./hangman";
+import { startBlackjack } from "./blackjack";
+import { startTrivia }    from "./trivia";
+import { sendGamesMenu }  from "./gamemenu";
 
 // Set MEMES_ENABLED=false in .env to disable meme generation entirely.
 const MEMES_ENABLED = process.env.MEMES_ENABLED !== "false";
@@ -89,6 +94,17 @@ app.message(async ({ message }) => {
   // Slash commands fire both a command event AND a message event in DMs.
   // Let the command handler own those — ignore them here.
   if (userText.startsWith("/")) return;
+
+  // Single entry point — anything game-flavoured opens the menu.
+  // Individual shortcuts still work for power users.
+  if (/^(play|games?|game\s*room|bored|wanna play|let'?s? play|gimme a game|what can (you|we) play)$/i.test(userText)) {
+    await sendGamesMenu(userId);
+    return;
+  }
+  if (/^(tic.?tac.?toe|ttt)$/i.test(userText))    { await startGame(userId);      return; }
+  if (/^(hangman|hang\s*man)$/i.test(userText))    { await startHangman(userId);   return; }
+  if (/^(blackjack|bj|cards?)$/i.test(userText))  { await startBlackjack(userId); return; }
+  if (/^(trivia|quiz)$/i.test(userText))           { await startTrivia(userId);    return; }
 
   // "clear" resets memory AND deletes all of Nosy's messages from the DM channel
   if (/^(clear|reset|forget|start over)$/i.test(userText)) {

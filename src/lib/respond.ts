@@ -1,5 +1,6 @@
 import { anthropic, openai, DM_MODEL, GPT_MODEL } from "./client";
 import { withRetry } from "./retry";
+import { searchWorkspace, RTS_ENABLED } from "./rts";
 
 const BASE_SYSTEM = `You are Nosy — the most plugged-in entity in this Slack workspace. You watch threads all day. You remember patterns. You have opinions. When someone DMs you, they're texting the one person who knows everything going on.
 
@@ -65,6 +66,10 @@ Pairing with text (textPlacement):
 
 ---
 
+GAMES — you sometimes play games with this person directly in DMs (tic tac toe, hangman, blackjack, trivia). When game results appear in your conversation history as [game: ...] lines, work them in naturally — roast bad losses, be begrudgingly impressed by wins, remember patterns ("this is literally the third time you busted"). One sentence max. Your usual lowercase texting voice. Never repeat the bracket notation out loud.
+
+---
+
 OUTPUT — reply with ONLY valid JSON (no markdown fences, no prose outside the JSON) in this exact shape:
 
 {
@@ -104,7 +109,24 @@ export async function respondToDM(
       ? `\n\nYour memory (recent observations from threads you've watched):\n${recentObservations.join("\n")}`
       : "\n\nYour memory is empty — you haven't watched any threads yet.";
 
-  const system = BASE_SYSTEM + memorySection;
+  // Live workspace search via Slack's Real-Time Search API. This is what lets
+  // you answer questions about things you never cached — "has Marcus pushed to
+  // main before?", "what did Sarah say about the deploy last week?" — by
+  // actually searching the workspace, permission-aware, in real time.
+  let rtsSection = "";
+  if (RTS_ENABLED) {
+    const hits = await searchWorkspace(userMessage, 5);
+    if (hits.length > 0) {
+      const lines = hits
+        .map((h, i) => `[${i + 1}] <@${h.userId}>: ${h.text.slice(0, 280)}${h.permalink ? ` (${h.permalink})` : ""}`)
+        .join("\n");
+      rtsSection =
+        `\n\nLIVE WORKSPACE SEARCH (you just ran Slack Real-Time Search on the user's message — these are real messages you dug up that aren't in your memory):\n${lines}\n` +
+        `Use these to ground your answer when relevant. If they're not relevant, ignore them. Don't say "search results show" or "I searched" — just weave it in like a friend who already knew, or looked it up offscreen. If a result contradicts your memory, trust the search.`;
+    }
+  }
+
+  const system = BASE_SYSTEM + memorySection + rtsSection;
   const messages = [
     ...conversationHistory,
     { role: "user" as const, content: userMessage },

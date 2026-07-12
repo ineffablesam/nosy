@@ -58,12 +58,13 @@ app.command("/nosy", async ({ command, ack, respond }) => {
       console.error("[nuke] DMs close failed:", err);
     }
 
-    // 3. Archive all public channels (requires channels:read + channels:manage)
-    //    Private channels need groups:write which isn't in the bot scopes — skipped.
-    const skipChannel = command.channel_id; // skip the channel the command came from — archive last
+    // 3. Delete all messages from every public channel.
+    //    We intentionally do NOT archive — archiving kicks the bot out and
+    //    bot tokens cannot unarchive, which breaks the seeder on the next run.
+    //    Deleting messages leaves channels active and empty (a clean slate).
     try {
       let cursor: string | undefined;
-      const toArchive: string[] = [];
+      let deletedMsgs = 0;
       do {
         const res = await app.client.conversations.list({
           types: "public_channel",
@@ -72,25 +73,56 @@ app.command("/nosy", async ({ command, ack, respond }) => {
           cursor,
         });
         for (const ch of res.channels ?? []) {
-          if (ch.id && ch.id !== skipChannel) toArchive.push(ch.id);
+          if (!ch.id) continue;
+          if (!ch.is_member) {
+            await app.client.conversations.join({ channel: ch.id }).catch(() => {});
+          }
+          let msgCursor: string | undefined;
+          do {
+            const history = await app.client.conversations.history({
+              channel: ch.id,
+              limit: 200,
+              cursor: msgCursor,
+            });
+            for (const msg of history.messages ?? []) {
+              if (!msg.ts) continue;
+              // Delete thread replies FIRST — otherwise deleting the parent
+              // leaves a "This message was deleted" tombstone in the channel.
+              if (msg.reply_count && msg.reply_count > 0) {
+                let replyCursor: string | undefined;
+                do {
+                  const thread = await app.client.conversations.replies({
+                    channel: ch.id,
+                    ts: msg.ts,
+                    limit: 200,
+                    cursor: replyCursor,
+                  });
+                  // replies() returns parent as index 0 — skip it, delete the rest
+                  for (const reply of (thread.messages ?? []).slice(1)) {
+                    if (reply.ts) {
+                      await app.client.chat.delete({ channel: ch.id, ts: reply.ts }).catch(() => {});
+                      deletedMsgs++;
+                      await new Promise((r) => setTimeout(r, 100));
+                    }
+                  }
+                  replyCursor = thread.response_metadata?.next_cursor ?? undefined;
+                } while (replyCursor);
+              }
+              // Now delete the parent — no replies left, so no tombstone.
+              await app.client.chat.delete({ channel: ch.id, ts: msg.ts }).catch(() => {});
+              deletedMsgs++;
+              await new Promise((r) => setTimeout(r, 100));
+            }
+            msgCursor = history.response_metadata?.next_cursor ?? undefined;
+          } while (msgCursor);
         }
         cursor = res.response_metadata?.next_cursor ?? undefined;
       } while (cursor);
-
-      let archived = 0;
-      for (const id of toArchive) {
-        await app.client.conversations.archive({ channel: id }).catch(() => {});
-        archived++;
-      }
-      results.push(`${archived} channels archived`);
+      results.push(`${deletedMsgs} messages deleted from channels`);
     } catch (err) {
-      results.push("channel archive failed");
-      console.error("[nuke] channel archive failed:", err);
+      results.push("channel clear failed");
+      console.error("[nuke] channel clear failed:", err);
     }
-
-    // Archive the command channel last so the ephemeral was already delivered
-    await new Promise((r) => setTimeout(r, 1500));
-    await app.client.conversations.archive({ channel: skipChannel }).catch(() => {});
 
     console.log("[nuke] done:", results.join(" | "));
     return;

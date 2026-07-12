@@ -21,7 +21,7 @@ export async function fetchThreadMessages(
       .filter((m): m is typeof m & { text: string } => Boolean(m.text))
       .map((m) => ({
         // Real users have m.user; bot/seeded messages use username or bot_id as fallback
-        userId: m.user ?? (m as Record<string, unknown>).username as string ?? m.bot_id ?? "unknown",
+        userId: m.user ?? (m as unknown as Record<string, unknown>).username as string ?? m.bot_id ?? "unknown",
         text: m.text!,
       }));
   } catch (err) {

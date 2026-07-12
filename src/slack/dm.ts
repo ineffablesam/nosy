@@ -1,4 +1,5 @@
 import { app } from "./app";
+import type { KnownBlock } from "@slack/types";
 
 export async function sendDM(
   userId: string,
@@ -17,6 +18,30 @@ export async function sendDM(
     });
   } catch (err) {
     console.error(`[dm] Failed to DM ${userId}:`, err);
+  }
+}
+
+/**
+ * Posts a Block Kit message to the user's DM. `fallbackText` is what Slack shows
+ * in notifications / inaccessible clients, so it must carry the gist on its own.
+ * Returns the message ts + channel id so callers can later chat.update the card.
+ */
+export async function sendBlockDM(
+  userId: string,
+  fallbackText: string,
+  blocks: KnownBlock[]
+): Promise<{ ok: boolean; ts?: string; channelId?: string }> {
+  try {
+    const res = await app.client.chat.postMessage({
+      channel: userId,
+      text: fallbackText,
+      blocks,
+      unfurl_links: false,
+    });
+    return { ok: true, ts: res.ts as string | undefined, channelId: res.channel as string | undefined };
+  } catch (err) {
+    console.error(`[dm] sendBlockDM failed for ${userId}:`, err);
+    return { ok: false };
   }
 }
 

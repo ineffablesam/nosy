@@ -2,6 +2,12 @@
 import "./slack/events";
 import "./slack/conversation";
 import "./slack/commands";
+import "./slack/actions";
+import "./slack/tictactoe";
+import "./slack/hangman";
+import "./slack/blackjack";
+import "./slack/trivia";
+import "./slack/gamemenu";
 
 import { app } from "./slack/app";
 import { startReceiptsCron } from "./cron/receipts";

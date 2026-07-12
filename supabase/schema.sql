@@ -38,6 +38,7 @@ create table if not exists receipts (
   due_hint    text,
   resolved    boolean default false,
   alerted     boolean default false,
+  snooze_until timestamptz,              -- set by the "Snooze 1 day" button
   created_at  timestamptz default now()
 );
 
