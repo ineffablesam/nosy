@@ -9,6 +9,7 @@ import { startHangman }   from "./hangman";
 import { startBlackjack } from "./blackjack";
 import { startTrivia }    from "./trivia";
 import { sendGamesMenu }  from "./gamemenu";
+import { handleMovieIntent } from "./movie";
 
 // Set MEMES_ENABLED=false in .env to disable meme generation entirely.
 const MEMES_ENABLED = process.env.MEMES_ENABLED !== "false";
@@ -105,6 +106,9 @@ app.message(async ({ message }) => {
   if (/^(hangman|hang\s*man)$/i.test(userText))    { await startHangman(userId);   return; }
   if (/^(blackjack|bj|cards?)$/i.test(userText))  { await startBlackjack(userId); return; }
   if (/^(trivia|quiz)$/i.test(userText))           { await startTrivia(userId);    return; }
+
+  // Movie teasers — refuse->cave gate, handled before the LLM turn.
+  if (await handleMovieIntent(userId, userText)) return;
 
   // "clear" resets memory AND deletes all of Nosy's messages from the DM channel
   if (/^(clear|reset|forget|start over)$/i.test(userText)) {
