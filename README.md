@@ -77,6 +77,12 @@ When Nosy DMs you, it draws on that memory. When you DM Nosy back:
 
 Nosy isn't just watching the current thread. It's been watching the whole workspace.
 
+### Nosy Productions — gossip movie teasers
+
+Nosy runs a fake film studio. DM it `movie` and it refuses — *"NOSY PRODUCTIONS only premieres full features on Saturdays."* Push back (*"please, just a teaser"*) and it caves: *"ugh FINE. one teaser. gimme a sec, rendering 🎬"*. Moments later a real **~8-second comedic movie trailer** lands in your DM — an MGM-parody "NOSY PRODUCTIONS" studio ident, deadpan office scenes shot like a blockbuster, an over-serious narrator, music, and sound fx — all generated from your workspace's actual gossip.
+
+Under the hood, **Claude** turns recent observations into a cinematic trailer prompt, and **Google's Gemini Omni Flash** renders the video (with native audio) from that prompt. Set `MOVIES_ENABLED=false` to turn the feature off.
+
 ---
 
 
@@ -117,7 +123,8 @@ User replies to Nosy's DM:
 
 - **Runtime:** Node.js + TypeScript
 - **Slack:** Bolt for JavaScript — Events API, Slash Commands, **Block Kit** (interactive cards + App Home tab), **Real-Time Search API** (`assistant.search.context`)
-- **AI:** Anthropic Claude (`claude-sonnet-4-6` for thread analysis, `claude-haiku-4-5` for DMs) with GPT fallback — reads thread content, writes DMs, makes judgment calls
+- **AI:** Anthropic Claude (`claude-sonnet-4-6` for thread analysis + movie-trailer prompt-craft, `claude-haiku-4-5` for DMs) with GPT fallback — reads thread content, writes DMs, makes judgment calls
+- **Video:** Google Gemini Omni Flash (`gemini-omni-flash-preview`) — generates the comedic movie teasers (video + audio) from Claude-authored prompts
 - **Database:** Supabase (PostgreSQL) — subscriptions, memory, receipts, conversation history
 - **Scheduling:** node-cron (receipts + obituary checks)
 - **Deploy:** Railway
@@ -132,6 +139,7 @@ To enable the interactive surfaces and RTS:
 2. **App Home tab:** in your Slack app config → *App Home* → enable the Home Tab and set it to **Publishable** (not read-only). Then under *Event Subscriptions* subscribe to the `app_home_opened` event. `views.publish` needs no special scope — just a bot token, which you already have.
 3. **Real-Time Search:** in *OAuth & Permissions* → **User Token Scopes** → add `search:read`. Reinstall the app to your workspace, copy the new `xoxp-` token, and set it as `SLACK_USER_TOKEN` in `.env`.
 4. Reinstall the app and restart. With `SLACK_USER_TOKEN` unset, Nosy still works — it just skips live search and answers from cached memory.
+5. **Movie teasers:** set `GEMINI_API_KEY` (from Google AI Studio) in `.env`. Optionally override `GEMINI_VIDEO_MODEL` (default `gemini-omni-flash-preview`) or set `MOVIES_ENABLED=false` to disable. Smoke-test generation end-to-end with `npx tsx --env-file .env scripts/test-trailer.ts` (needs seeded observations).
 
 ---
 
