@@ -95,10 +95,23 @@ export interface DMResponse {
   meme: MemeDecision | null;
 }
 
-const GLITCH: DMResponse = {
-  reply: "my brain glitched for a sec, what were you saying?",
+export const LLM_UNAVAILABLE: DMResponse = {
+  reply:
+    "my brain got rate-limited rn 😭 try me again in a minute. meanwhile, see me work here: https://www.youtube.com/watch?v=bAEFUn1op2w",
   meme: null,
 };
+
+const NO_RETRY = { maxAttempts: 1 };
+
+function isRateLimited(err: unknown): boolean {
+  const status = (err as { status?: number }).status;
+  const type = (err as { error?: { type?: string } }).error?.type;
+  return (
+    status === 429 ||
+    type === "rate_limit_error" ||
+    String(err).toLowerCase().includes("rate")
+  );
+}
 
 export async function respondToDM(
   userMessage: string,
@@ -149,13 +162,15 @@ export async function respondToDM(
         "respond",
         `claude/${DM_MODEL} attempt ${attempt}`,
         () =>
-          withRetry(() =>
-            anthropic.messages.create({
+          withRetry(
+            () =>
+              anthropic.messages.create({
               model: DM_MODEL,
               max_tokens: 1024,
               system,
               messages,
-            })
+              }),
+            NO_RETRY
           )
       );
       const block = response.content[0];
@@ -177,6 +192,10 @@ export async function respondToDM(
         "respond",
         `claude attempt ${attempt} failed — ${err instanceof Error ? err.message : String(err)}`
       );
+      if (isRateLimited(err)) {
+        logLLM("respond", "returning immediate rate-limit fallback");
+        return { ...LLM_UNAVAILABLE };
+      }
       await new Promise((r) => setTimeout(r, 2000));
     }
   }
@@ -185,18 +204,20 @@ export async function respondToDM(
   logLLM("respond", `claude exhausted, falling back to gpt/${GPT_MODEL}`);
   try {
     const res = await timedLLM("respond", `gpt/${GPT_MODEL} fallback`, () =>
-      withRetry(() =>
-        openai.chat.completions.create({
+      withRetry(
+        () =>
+          openai.chat.completions.create({
           model: GPT_MODEL,
           max_tokens: 1024,
           messages: [{ role: "system", content: system }, ...messages],
-        })
+          }),
+        NO_RETRY
       )
     );
     const raw = (res.choices[0]?.message?.content ?? "").trim();
     if (!raw) {
       logLLM("respond", "gpt fallback returned empty");
-      return { ...GLITCH };
+      return { ...LLM_UNAVAILABLE };
     }
     const parsed = parseDMResponse(raw);
     logLLM(
@@ -209,7 +230,7 @@ export async function respondToDM(
   }
 
   logLLM("respond", "returning glitch fallback");
-  return { ...GLITCH };
+  return { ...LLM_UNAVAILABLE };
 }
 
 function parseDMResponse(raw: string): DMResponse {
