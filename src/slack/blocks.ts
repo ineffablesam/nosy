@@ -101,39 +101,3 @@ export function buildReceiptSettledCard(opts: {
     ],
   };
 }
-
-// --- small typed helpers for the Home tab -------------------------------------
-
-export function section(text: string): KnownBlock {
-  return { type: "section", text: { type: "mrkdwn", text } };
-}
-
-export function contextLine(text: string): KnownBlock {
-  return { type: "context", elements: [{ type: "mrkdwn", text }] };
-}
-
-export function divider(): KnownBlock {
-  return { type: "divider" };
-}
-
-export function actionButtons(
-  buttons: Array<{
-    actionId: string;
-    text: string;
-    style?: "primary" | "danger";
-    value?: string;
-    url?: string;
-  }>
-): KnownBlock {
-  return {
-    type: "actions",
-    elements: buttons.map((b) => ({
-      type: "button",
-      action_id: b.actionId,
-      text: { type: "plain_text", text: b.text },
-      ...(b.style ? { style: b.style } : {}),
-      ...(b.value !== undefined ? { value: b.value } : {}),
-      ...(b.url ? { url: b.url } : {}),
-    })),
-  };
-}

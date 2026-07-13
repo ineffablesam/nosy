@@ -1,0 +1,215 @@
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-Medium.eot');
+    src: local('SF Pro Display Medium'), local('SFProDisplay-Medium'),
+        url('./src/SFProDisplay-Medium.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-Medium.woff2') format('woff2'),
+        url('./src/SFProDisplay-Medium.woff') format('woff'),
+        url('./src/SFProDisplay-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-Heavy.eot');
+    src: local('SF Pro Display Heavy'), local('SFProDisplay-Heavy'),
+        url('./src/SFProDisplay-Heavy.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-Heavy.woff2') format('woff2'),
+        url('./src/SFProDisplay-Heavy.woff') format('woff'),
+        url('./src/SFProDisplay-Heavy.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-Thin.eot');
+    src: local('SF Pro Display Thin'), local('SFProDisplay-Thin'),
+        url('./src/SFProDisplay-Thin.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-Thin.woff2') format('woff2'),
+        url('./src/SFProDisplay-Thin.woff') format('woff'),
+        url('./src/SFProDisplay-Thin.ttf') format('truetype');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-Light.eot');
+    src: local('SF Pro Display Light'), local('SFProDisplay-Light'),
+        url('./src/SFProDisplay-Light.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-Light.woff2') format('woff2'),
+        url('./src/SFProDisplay-Light.woff') format('woff'),
+        url('./src/SFProDisplay-Light.ttf') format('truetype');
+    font-weight: 200;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-Bold.eot');
+    src: local('SF Pro Display Bold'), local('SFProDisplay-Bold'),
+        url('./src/SFProDisplay-Bold.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-Bold.woff2') format('woff2'),
+        url('./src/SFProDisplay-Bold.woff') format('woff'),
+        url('./src/SFProDisplay-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-Black.eot');
+    src: local('SF Pro Display Black'), local('SFProDisplay-Black'),
+        url('./src/SFProDisplay-Black.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-Black.woff2') format('woff2'),
+        url('./src/SFProDisplay-Black.woff') format('woff'),
+        url('./src/SFProDisplay-Black.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-Ultralight.eot');
+    src: local('SF Pro Display Ultralight'), local('SFProDisplay-Ultralight'),
+        url('./src/SFProDisplay-Ultralight.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-Ultralight.woff2') format('woff2'),
+        url('./src/SFProDisplay-Ultralight.woff') format('woff'),
+        url('./src/SFProDisplay-Ultralight.ttf') format('truetype');
+    font-weight: 200;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-Semibold.eot');
+    src: local('SF Pro Display Semibold'), local('SFProDisplay-Semibold'),
+        url('./src/SFProDisplay-Semibold.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-Semibold.woff2') format('woff2'),
+        url('./src/SFProDisplay-Semibold.woff') format('woff'),
+        url('./src/SFProDisplay-Semibold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-Regular.eot');
+    src: local('SF Pro Display Regular'), local('SFProDisplay-Regular'),
+        url('./src/SFProDisplay-Regular.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-Regular.woff2') format('woff2'),
+        url('./src/SFProDisplay-Regular.woff') format('woff'),
+        url('./src/SFProDisplay-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-UltralightItalic.eot');
+    src: local('SF Pro Display UltralightItalic'), local('SFProDisplay-UltralightItalic'),
+        url('./src/SFProDisplay-UltralightItalic.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-UltralightItalic.woff2') format('woff2'),
+        url('./src/SFProDisplay-UltralightItalic.woff') format('woff'),
+        url('./src/SFProDisplay-UltralightItalic.ttf') format('truetype');
+    font-weight: 200;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-RegularItalic.eot');
+    src: local('SF Pro Display Regular Italic'), local('SFProDisplay-RegularItalic'),
+        url('./src/SFProDisplay-RegularItalic.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-RegularItalic.woff2') format('woff2'),
+        url('./src/SFProDisplay-RegularItalic.woff') format('woff'),
+        url('./src/SFProDisplay-RegularItalic.ttf') format('truetype');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-BlackItalic.eot');
+    src: local('SF Pro Display Black Italic'), local('SFProDisplay-BlackItalic'),
+        url('./src/SFProDisplay-BlackItalic.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-BlackItalic.woff2') format('woff2'),
+        url('./src/SFProDisplay-BlackItalic.woff') format('woff'),
+        url('./src/SFProDisplay-BlackItalic.ttf') format('truetype');
+    font-weight: 900;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-SemiboldItalic.eot');
+    src: local('SF Pro Display SemiboldItalic'), local('SFProDisplay-SemiboldItalic'),
+        url('./src/SFProDisplay-SemiboldItalic.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-SemiboldItalic.woff2') format('woff2'),
+        url('./src/SFProDisplay-SemiboldItalic.woff') format('woff'),
+        url('./src/SFProDisplay-SemiboldItalic.ttf') format('truetype');
+    font-weight: 600;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-LightItalic.eot');
+    src: local('SF Pro Display LightItalic'), local('SFProDisplay-LightItalic'),
+        url('./src/SFProDisplay-LightItalic.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-LightItalic.woff2') format('woff2'),
+        url('./src/SFProDisplay-LightItalic.woff') format('woff'),
+        url('./src/SFProDisplay-LightItalic.ttf') format('truetype');
+    font-weight: 200;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-ThinItalic.eot');
+    src: local('SF Pro Display ThinItalic'), local('SFProDisplay-ThinItalic'),
+        url('./src/SFProDisplay-ThinItalic.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-ThinItalic.woff2') format('woff2'),
+        url('./src/SFProDisplay-ThinItalic.woff') format('woff'),
+        url('./src/SFProDisplay-ThinItalic.ttf') format('truetype');
+    font-weight: 100;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-MediumItalic.eot');
+    src: local('SF Pro Display MediumItalic'), local('SFProDisplay-MediumItalic'),
+        url('./src/SFProDisplay-MediumItalic.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-MediumItalic.woff2') format('woff2'),
+        url('./src/SFProDisplay-MediumItalic.woff') format('woff'),
+        url('./src/SFProDisplay-MediumItalic.ttf') format('truetype');
+    font-weight: 500;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-HeavyItalic.eot');
+    src: local('SF Pro Display HeavyItalic'), local('SFProDisplay-HeavyItalic'),
+        url('./src/SFProDisplay-HeavyItalic.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-HeavyItalic.woff2') format('woff2'),
+        url('./src/SFProDisplay-HeavyItalic.woff') format('woff'),
+        url('./src/SFProDisplay-HeavyItalic.ttf') format('truetype');
+    font-weight: 900;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'SF Pro Display';
+    src: url('./src/SFProDisplay-BoldItalic.eot');
+    src: local('SF Pro Display BoldItalic'), local('SFProDisplay-BoldItalic'),
+        url('./src/SFProDisplay-BoldItalic.eot?#iefix') format('embedded-opentype'),
+        url('./src/SFProDisplay-BoldItalic.woff2') format('woff2'),
+        url('./src/SFProDisplay-BoldItalic.woff') format('woff'),
+        url('./src/SFProDisplay-BoldItalic.ttf') format('truetype');
+    font-weight: bold;
+    font-style: italic;
+}

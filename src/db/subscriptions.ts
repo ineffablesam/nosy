@@ -28,13 +28,3 @@ export async function getThreadAndChannelSubscribers(
   ]);
   return [...new Set([...threadSubs, ...channelSubs])];
 }
-
-/** Everything a single user is watching — used by the App Home tab. */
-export async function listSubscriptionsForUser(userId: string): Promise<string[]> {
-  const { data, error } = await supabase
-    .from("subscriptions")
-    .select("thread_key")
-    .eq("user_id", userId);
-  if (error || !data) return [];
-  return (data as Array<{ thread_key: string }>).map((r) => r.thread_key);
-}

@@ -3,5 +3,5 @@
 -- receipts cron re-fires once the snooze window passes.
 alter table receipts add column if not exists snooze_until timestamptz;
 
--- Speeds up "open receipts for this user" lookups used by the App Home tab.
+-- Speeds up open-receipt lookups for the receipts cron.
 create index if not exists idx_receipts_open on receipts(resolved, created_at);
