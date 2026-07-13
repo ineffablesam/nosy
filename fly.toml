@@ -3,9 +3,6 @@
 app = 'nosy-srddmq'
 primary_region = "iad"
 
-[build]
-  builder = "paketobuildpacks/builder-jammy-base"
-
 [processes]
   app = "npm start"
 
