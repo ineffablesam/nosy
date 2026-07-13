@@ -10,7 +10,7 @@ import { WebClient } from "@slack/web-api";
  * "what did Sarah say about the deploy last week?", etc.
  *
  * NOTE: search respects the *user's* permissions, so this requires a USER
- * token (xoxp-) with the `search:read` scope — not the bot token. For the
+ * token (xoxp-) with the `search:read.public` scope — not the bot token. For the
  * demo we search as the installer (whose token is in SLACK_USER_TOKEN). In a
  * multi-user deployment you'd do per-user OAuth and store each user's token.
  *

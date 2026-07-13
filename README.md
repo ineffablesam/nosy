@@ -96,7 +96,7 @@ Required technology used: Slack Real-Time Search API, load-bearing in the DM loo
 Beyond the base `.env`:
 
 1. **Migration:** run `supabase/migrations/2026-07-12-receipts-snooze.sql` in Supabase.
-2. **Real-Time Search:** add the `search:read` User Token Scope, reinstall, and set the new `xoxp-` token as `SLACK_USER_TOKEN`. If it's unset, Nosy still runs and answers from cached memory.
+2. **Real-Time Search:** add the `search:read.public` User Token Scope, reinstall, and set the new `xoxp-` token as `SLACK_USER_TOKEN`. If it's unset, Nosy still runs and answers from cached memory.
 3. **Movie teasers:** set `GEMINI_API_KEY`. Smoke-test with `npx tsx --env-file .env scripts/test-trailer.ts`.
 4. Reinstall and restart.
 
