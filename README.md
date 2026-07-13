@@ -15,6 +15,8 @@ Slack treats every reply the same. "ok sounds good" pings you exactly like "we n
 
 Meanwhile commitments get made and forgotten. Decisions happen in threads you're watching but not talking in. And when a thread dies, nobody knows how it ended.
 
+[![Nosy Banner](https://i.postimg.cc/PJM66wnc/banner-1.avif)](https://youtu.be/bAEFUn1op2w)
+
 ## What Nosy is
 
 Nosy is the Slack agent that gets nosy *for you*. Point it at a thread or channel and it reads along, remembers what happened, and gets in your DMs only when something is worth your attention.
