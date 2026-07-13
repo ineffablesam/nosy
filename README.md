@@ -5,7 +5,7 @@
 
 > Built for the Slack Agent Builder Challenge 2026
 
-[![Watch Nosy in action](assets/yt-thumbnail.png)](https://youtu.be/bAEFUn1op2w)
+[![Watch Nosy in action](https://i.postimg.cc/gdBdL7jx/demo.avif)](https://youtu.be/bAEFUn1op2w)
 
 ---
 
@@ -66,7 +66,7 @@ No alert banners. No "THREAD ACTIVITY DETECTED." Just a message.
 
 ## Architecture
 
-![Nosy architecture](arch/nosy-dark-arch.jpg)
+![Nosy architecture](https://i.postimg.cc/PtL1h9LG/nosy-dark-arch.avif)
 
 ---
 
