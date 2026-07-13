@@ -1,14 +1,12 @@
-<img src="https://i.postimg.cc/PJM66wnc/banner-1.avif" alt="banner-1" width="100%"/>
-
 # Nosy
 
-**The AI that's been watching your Slack workspace, and has opinions about it.**
+> **“They said ‘mind your business.’ I said ‘your Slack is my business.’ 💅**  
+> **I lurk in threads, track broken promises, connect the dots, and resurrect dead conversations. Respectfully? No.”**
 
 > Built for the Slack Agent Builder Challenge 2026
 
-<a href="https://youtu.be/bAEFUn1op2w?si=V9hB1ZBdbiJqKLg_" target="_blank">
-  <img src="https://i.postimg.cc/gdBdL7jx/demo.avif" alt="Watch Nosy in action" width="100%"/>
-</a>
+[![Watch Nosy in action](assets/yt-thumbnail.png)](https://youtu.be/bAEFUn1op2w)
+
 ---
 
 ## The problem
@@ -19,9 +17,9 @@ Meanwhile commitments get made and forgotten. Decisions happen in threads you're
 
 ## What Nosy is
 
-Nosy is a Slack agent for people who are in too many threads to read them all. You don't ask it anything. You point it at a thread or a channel. It reads every message with Claude and DMs you only when something is actually worth knowing, in the voice of the most plugged-in person in your office.
+Nosy is the Slack agent that gets nosy *for you*. Point it at a thread or channel and it reads along, remembers what happened, and gets in your DMs only when something is worth your attention.
 
-It is not a chatbot in a Slack skin. It is a witness. It watches, it remembers, and it has takes.
+It is not a chatbot waiting for you to type the perfect prompt. It is a witness with a long memory and zero interest in staying out of the drama.
 
 ---
 
@@ -53,8 +51,6 @@ No alert banners. No "THREAD ACTIVITY DETECTED." Just a message.
 
 > "RIP this thread. started as a 'quick question', became 23 messages of circular debate, ended when Mark said he'd 'think about it'. he has not thought about it."
 
-**A home tab that's a dashboard.** Open the app and you land on a live dashboard: what you're watching, your open receipts and how late they are, recently dead threads, and Nosy's latest takes. One button, **🍵 Spill the tea**, and Nosy reads its whole memory and gives you the gossip now.
-
 **Real-Time Search.** When you DM Nosy a question, it runs Slack's Real-Time Search API (`assistant.search.context`) to search the live workspace, permission-aware, and answers from real messages. Ask "has Marcus pushed to main before?" and Nosy looks it up instead of guessing. This is load-bearing: remove it and Nosy can only answer from what it happened to cache.
 
 **Memory that compounds.** Every thread Nosy reads becomes a stored observation. Over time it learns who says what, what repeats, and what never resolves.
@@ -68,15 +64,15 @@ No alert banners. No "THREAD ACTIVITY DETECTED." Just a message.
 
 ---
 
-## Architcture
+## Architecture
 
-<img src="https://i.postimg.cc/PtL1h9LG/nosy-dark-arch.avif" alt="nosy-dark-arch" width="100%"/>
+![Nosy architecture](arch/nosy-dark-arch.jpg)
 
 ---
 
 ## Frontend and backend, both load-bearing
 
-- **Frontend, inside Slack:** Block Kit interactive receipt cards, the App Home dashboard, and DMs written to read like a human.
+- **Frontend, inside Slack:** Block Kit interactive receipt cards and DMs written to read like a human.
 - **Backend:** Claude thread analysis and DM generation, a Supabase memory that compounds, node-cron jobs for receipts and obituaries, and Slack Real-Time Search for live lookups.
 
 ---
@@ -84,7 +80,7 @@ No alert banners. No "THREAD ACTIVITY DETECTED." Just a message.
 ## Tech stack
 
 - **Runtime:** Node.js + TypeScript
-- **Slack:** Bolt for JS. Events API, slash commands, Block Kit (interactive cards + App Home), Real-Time Search API (`assistant.search.context`)
+- **Slack:** Bolt for JS. Events API, slash commands, Block Kit interactive cards, Real-Time Search API (`assistant.search.context`)
 - **AI:** Anthropic Claude (`claude-sonnet-4-6` for analysis and trailer prompts, `claude-haiku-4-5` for DMs) with a GPT fallback
 - **Video:** Google Gemini Omni Flash (`gemini-omni-flash-preview`) for the comedic teasers
 - **Database:** Supabase (PostgreSQL) for subscriptions, memory, and receipts
@@ -100,10 +96,9 @@ Required technology used: Slack Real-Time Search API, load-bearing in the DM loo
 Beyond the base `.env`:
 
 1. **Migration:** run `supabase/migrations/2026-07-12-receipts-snooze.sql` in Supabase.
-2. **App Home:** in your Slack app config, enable the Home Tab as Publishable and subscribe to the `app_home_opened` event.
-3. **Real-Time Search:** add the `search:read` User Token Scope, reinstall, and set the new `xoxp-` token as `SLACK_USER_TOKEN`. If it's unset, Nosy still runs and answers from cached memory.
-4. **Movie teasers:** set `GEMINI_API_KEY`. Smoke-test with `npx tsx --env-file .env scripts/test-trailer.ts`.
-5. Reinstall and restart.
+2. **Real-Time Search:** add the `search:read` User Token Scope, reinstall, and set the new `xoxp-` token as `SLACK_USER_TOKEN`. If it's unset, Nosy still runs and answers from cached memory.
+3. **Movie teasers:** set `GEMINI_API_KEY`. Smoke-test with `npx tsx --env-file .env scripts/test-trailer.ts`.
+4. Reinstall and restart.
 
 ---
 
