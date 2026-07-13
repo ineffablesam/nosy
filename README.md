@@ -1,171 +1,146 @@
 # Nosy
 
-**The AI that's been watching your Slack workspace — and has opinions about it.**
+**The AI that's been watching your Slack workspace, and has opinions about it.**
 
 > Built for the Slack Agent Builder Challenge 2026
 
 ---
 
-## The Problem
+## The problem
 
-You're subscribed to threads you care about, but Slack gives you the same notification for "ok sounds good" as it does for "we need to talk about the deploy." Everything looks the same. Nothing feels urgent until it is.
+Slack treats every reply the same. "ok sounds good" pings you exactly like "we need to talk about the deploy." So you either drown in noise or mute everything and miss the one message that mattered.
 
-Meanwhile, commitments get made and forgotten. Decisions happen in threads you're watching but not participating in. And when a thread dies — no one knows how it ended.
+Meanwhile commitments get made and forgotten. Decisions happen in threads you're watching but not talking in. And when a thread dies, nobody knows how it ended.
 
-## What Nosy Does
+## What Nosy is
 
-Nosy is not an assistant. You don't ask it things. It watches — and it tells you what's worth knowing.
+Nosy is a Slack agent for people who are in too many threads to read them all. You don't ask it anything. You point it at a thread or a channel. It reads every message with Claude and DMs you only when something is actually worth knowing, in the voice of the most plugged-in person in your office.
 
-### Watch a thread (or an entire channel)
+It is not a chatbot in a Slack skin. It is a witness. It watches, it remembers, and it has takes.
 
-Run `/nosy` inside any thread and Nosy subscribes you. Run it in a channel with no thread selected and Nosy watches **every thread in that channel**. It reads every message through Claude, and only contacts you when something genuinely interesting happens.
+---
 
-### DMs that sound like a friend, not a notification
+## What it does
 
-When Nosy reaches out, it reads like a text from the most plugged-in person in your office:
+**Watch a thread or a whole channel.** Run `/nosy` in a thread to watch that thread. Run it in a channel to watch every thread in it. Nosy reads each message through Claude and only reaches out when something interesting happens.
+
+**DMs that read like a text, not a notification.**
 
 > "jake just said 'almost done' again. third time this week. just wanted you to know 👀"
 
 > "it went quiet in there right after that comment dropped. you felt that too right?"
 
-> "they're doing the same thing they did in the Q3 planning thread — going in circles but louder"
-
 No alert banners. No "THREAD ACTIVITY DETECTED." Just a message.
 
-### Receipts Engine
-
-Nosy listens for commitments. "I'll have it done by Thursday." "Shipping EOD." "Will fix this tomorrow." It stores them. If time passes and nothing happens — Nosy reaches out with an **interactive card**, not a wall of text:
+**Receipts.** Nosy catches commitments ("shipping EOD," "will fix this tomorrow") and stores them. When the deadline passes and nothing happened, it sends an interactive card, not a wall of text:
 
 > ☣️ *Receipt is overdue*
-> Jake said they'd **ship the webhook refactor** — _"EOD Friday"_. that was 2 days ago and the thread's gone quiet. 👀
+> Jake said they'd **ship the webhook refactor**, _"EOD Friday"_. that was 2 days ago and the thread's gone quiet. 👀
 > `[ Nudge them 👋 ] [ Snooze 1 day ] [ Mark done ✅ ] [ Open thread ↗ ]`
 
-Hit **Nudge** and Nosy DMs Jake *on your behalf* ("sam asked me to check in on the webhook refactor 👀"). **Snooze** pushes it out a day. **Mark done** closes it. When someone actually ships it in-thread, Nosy notices and closes the receipt automatically.
+**Nudge** DMs Jake on your behalf. **Snooze** pushes it a day. **Mark done** closes it. If someone ships it in-thread, Nosy notices and closes the receipt itself.
 
-### Blindspot Alerts
-
-You've subscribed to a thread but haven't said anything in it. A decision is being made without your input. Nosy tells you:
+**Blindspot alerts.** You're subscribed to a thread but haven't spoken, and a decision is being made without you.
 
 > "you haven't been in that thread but they're making a call about the API architecture without you. might want to weigh in 👀"
 
-
-
-### Thread Obituaries
-
-When a thread goes silent after being active, Nosy writes its eulogy:
+**Thread obituaries.** When an active thread goes silent, Nosy writes the eulogy.
 
 > "RIP this thread. started as a 'quick question', became 23 messages of circular debate, ended when Mark said he'd 'think about it'. he has not thought about it."
 
-### The Home Tab — Nosy's dashboard
+**A home tab that's a dashboard.** Open the app and you land on a live dashboard: what you're watching, your open receipts and how late they are, recently dead threads, and Nosy's latest takes. One button, **🍵 Spill the tea**, and Nosy reads its whole memory and gives you the gossip now.
 
-Open the app in Slack and you land on a **live dashboard**, not an empty bot. It shows everything Nosy is holding for you: the threads and channels you're watching, your open receipts (with how late they are), recently deceased threads, and Nosy's latest takes across the workspace. One button — **🍵 Spill the tea** — and Nosy reads its whole memory and gives you the gossip right now.
+**Real-Time Search.** When you DM Nosy a question, it runs Slack's Real-Time Search API (`assistant.search.context`) to search the live workspace, permission-aware, and answers from real messages. Ask "has Marcus pushed to main before?" and Nosy looks it up instead of guessing. This is load-bearing: remove it and Nosy can only answer from what it happened to cache.
 
-### Real-Time Search (RTS) — Nosy can actually look things up
-
-Nosy's memory is everything it's watched. But what about the stuff it *didn't* cache? Nosy uses Slack's **Real-Time Search API** (`assistant.search.context`) to search the live workspace — permission-aware — when you ask it a question. So when you DM "has Marcus pushed to main before?" or "what did Sarah say about the deploy last week?", Nosy doesn't just guess from memory — it searches the workspace and answers from real messages. Without RTS, Nosy is limited to what it happened to store. With it, Nosy knows the whole workspace.
-
-
-
-### Memory That Compounds
-
-Every thread Nosy reads, it stores an observation. Over time, it builds a picture of your workspace — who says what, what patterns repeat, what never gets resolved.
-
-When Nosy DMs you, it draws on that memory. When you DM Nosy back:
+**Memory that compounds.** Every thread Nosy reads becomes a stored observation. Over time it learns who says what, what repeats, and what never resolves.
 
 > You: "has this team always been this chaotic?"
 > Nosy: "honestly yes. third sprint in a row this exact thing has happened. same people, same argument, same non-decision."
 
-Nosy isn't just watching the current thread. It's been watching the whole workspace.
+**Personality that lands.** Nosy drops the occasional AI-generated meme when a moment calls for it, with anti-spam rules so it stays rare. Type `games` in a DM to play tic-tac-toe, hangman, blackjack, or trivia. Nosy is undefeated.
 
-### Nosy Productions — gossip movie teasers
-
-Nosy runs a fake film studio. DM it `movie` and it refuses — *"NOSY PRODUCTIONS only premieres full features on Saturdays."* Push back (*"please, just a teaser"*) and it caves: *"ugh FINE. one teaser. gimme a sec, rendering 🎬"*. Moments later a real **~8-second comedic movie trailer** lands in your DM — an MGM-parody "NOSY PRODUCTIONS" studio ident, deadpan office scenes shot like a blockbuster, an over-serious narrator, music, and sound fx — all generated from your workspace's actual gossip.
-
-Under the hood, **Claude** turns recent observations into a cinematic trailer prompt, and **Google's Gemini Omni Flash** renders the video (with native audio) from that prompt. Set `MOVIES_ENABLED=false` to turn the feature off.
+**Nosy Productions.** DM `movie` and Nosy refuses at first ("only premieres full features on Saturdays"). Push back and it caves. Moments later a real ~10-second comedic trailer lands in your DM: a studio ident, deadpan office scenes shot like a blockbuster, a narrator, music, and sound fx, all generated from your workspace's actual gossip. Claude writes the trailer prompt. Google's Gemini Omni Flash renders the video with native audio. Set `MOVIES_ENABLED=false` to disable.
 
 ---
 
-
-
-## How It Works
+## How it works
 
 ```
-/nosy in a thread  →  watch this specific thread
-/nosy in a channel →  watch every thread in this channel
-Open the app       →  Home tab dashboard: watching, open receipts, obituaries, latest takes
+/nosy in a thread   ->  watch this thread
+/nosy in a channel  ->  watch every thread in this channel
+Open the app        ->  home tab dashboard
 
 New message in a watched thread:
-  → Claude reads the real thread content (not regex signals)
-  → Decides: is this notable? Is there a commitment? Should silent subscribers be warned?
-  → DMs active subscribers with drama, DMs silent subscribers with blindspot alerts
-  → Stores an observation to memory
-  → Checks for receipts
+  Claude reads the real thread content (not regex)
+  Decides: notable? a commitment? should silent subscribers be warned?
+  DMs active subscribers the drama, silent subscribers a blindspot alert
+  Stores an observation, checks for receipts
 
 Hourly receipt check:
-  → Any commitments unfulfilled past their deadline?
-  → DM subscribers an interactive card: Nudge / Snooze / Mark done / Open thread
+  Any commitment past its deadline?
+  DMs an interactive card: Nudge / Snooze / Mark done / Open thread
 
 Hourly obituary check:
-  → Any threads silent for 4+ hours after being active?
-  → Claude writes the eulogy, DMs subscribers
+  Any thread silent 4+ hours after being active?
+  Claude writes the eulogy, DMs subscribers
 
-User replies to Nosy's DM:
-  → Nosy runs Slack Real-Time Search on the message (permission-aware workspace search)
-  → Pulls its full memory + conversation history + the live search results
-  → Responds like a friend who's been paying attention — and who looked it up
+You reply to a Nosy DM:
+  Nosy runs Slack Real-Time Search on your message
+  Pulls full memory + conversation history + live search results
+  Replies like a friend who paid attention and looked it up
 ```
 
 ---
 
+## Frontend and backend, both load-bearing
 
+- **Frontend, inside Slack:** Block Kit interactive receipt cards, the App Home dashboard, and DMs written to read like a human.
+- **Backend:** Claude thread analysis and DM generation, a Supabase memory that compounds, node-cron jobs for receipts and obituaries, and Slack Real-Time Search for live lookups.
 
-## Tech Stack
+---
+
+## Tech stack
 
 - **Runtime:** Node.js + TypeScript
-- **Slack:** Bolt for JavaScript — Events API, Slash Commands, **Block Kit** (interactive cards + App Home tab), **Real-Time Search API** (`assistant.search.context`)
-- **AI:** Anthropic Claude (`claude-sonnet-4-6` for thread analysis + movie-trailer prompt-craft, `claude-haiku-4-5` for DMs) with GPT fallback — reads thread content, writes DMs, makes judgment calls
-- **Video:** Google Gemini Omni Flash (`gemini-omni-flash-preview`) — generates the comedic movie teasers (video + audio) from Claude-authored prompts
-- **Database:** Supabase (PostgreSQL) — subscriptions, memory, receipts, conversation history
-- **Scheduling:** node-cron (receipts + obituary checks)
+- **Slack:** Bolt for JS. Events API, slash commands, Block Kit (interactive cards + App Home), Real-Time Search API (`assistant.search.context`)
+- **AI:** Anthropic Claude (`claude-sonnet-4-6` for analysis and trailer prompts, `claude-haiku-4-5` for DMs) with a GPT fallback
+- **Video:** Google Gemini Omni Flash (`gemini-omni-flash-preview`) for the comedic teasers
+- **Database:** Supabase (PostgreSQL) for subscriptions, memory, and receipts
+- **Scheduling:** node-cron
 - **Deploy:** Railway
 
----
-
-## Setup (beyond the base `.env`)
-
-To enable the interactive surfaces and RTS:
-
-1. **Run the migration** in Supabase: `supabase/migrations/2026-07-12-receipts-snooze.sql` (adds `receipts.snooze_until`).
-2. **App Home tab:** in your Slack app config → *App Home* → enable the Home Tab and set it to **Publishable** (not read-only). Then under *Event Subscriptions* subscribe to the `app_home_opened` event. `views.publish` needs no special scope — just a bot token, which you already have.
-3. **Real-Time Search:** in *OAuth & Permissions* → **User Token Scopes** → add `search:read`. Reinstall the app to your workspace, copy the new `xoxp-` token, and set it as `SLACK_USER_TOKEN` in `.env`.
-4. Reinstall the app and restart. With `SLACK_USER_TOKEN` unset, Nosy still works — it just skips live search and answers from cached memory.
-5. **Movie teasers:** set `GEMINI_API_KEY` (from Google AI Studio) in `.env`. Optionally override `GEMINI_VIDEO_MODEL` (default `gemini-omni-flash-preview`) or set `MOVIES_ENABLED=false` to disable. Smoke-test generation end-to-end with `npx tsx --env-file .env scripts/test-trailer.ts` (needs seeded observations).
+Required technology used: Slack Real-Time Search API, load-bearing in the DM loop.
 
 ---
 
+## Setup
 
+Beyond the base `.env`:
 
-## What Makes This Different
-
-Every other agent in this challenge is a tool — you talk to it, it helps you. Nosy acts first. It's the first Slack agent that functions as a **witness**: it has been paying attention, it has memory, and it has opinions.
-
-- Memory compounds — the longer Nosy watches, the sharper its takes
-- The DMs don't feel like notifications — they feel like a text from someone who's plugged in
-- You can talk back — Nosy has a full conversation.
-- It tracks what people said they'd do — and notices when they don't
+1. **Migration:** run `supabase/migrations/2026-07-12-receipts-snooze.sql` in Supabase.
+2. **App Home:** in your Slack app config, enable the Home Tab as Publishable and subscribe to the `app_home_opened` event.
+3. **Real-Time Search:** add the `search:read` User Token Scope, reinstall, and set the new `xoxp-` token as `SLACK_USER_TOKEN`. If it's unset, Nosy still runs and answers from cached memory.
+4. **Movie teasers:** set `GEMINI_API_KEY`. Smoke-test with `npx tsx --env-file .env scripts/test-trailer.ts`.
+5. Reinstall and restart.
 
 ---
 
+## Why this is different
 
+Most Slack agents wait for you to ask, then help. Nosy acts first. It tracks what people said they'd do and notices when they don't. It warns you when a decision is being made without you. And it remembers, so the longer it watches, the sharper its takes get. The DMs don't feel like alerts. They feel like a text from someone who is always paying attention.
+
+---
 
 ## Demo
 
-[Demo video link]
+[Watch the demo](https://www.youtube.com/watch?v=bAEFUn1op2w)
+
+## Code
+
+[github.com/ineffablesam/nosy](https://github.com/ineffablesam/nosy)
 
 ---
 
-
-
 ## Built by
 
-[Your name / team]
+Samuel Philip. [heysam.dev](https://www.heysam.dev/)
